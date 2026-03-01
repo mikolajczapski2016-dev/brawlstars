@@ -169,17 +169,30 @@ function updateAttacks() {
         var ay = a.y + Math.sin(a.angle) * a.dist;
 
         if (a.owner === 'player') {
-            // Atak na gniazdo w trybie nest (gdy atak jest blisko gniazda)
-            if (gameMode === 'nest' && nestObject) {
-                var ndx = ax - nestObject.x;
-                var ndy = ay - nestObject.y;
-                var ndist = Math.sqrt(ndx*ndx + ndy*ndy);
-                if (ndist < a.size + 40) {
-                    nestObject.hp -= a.damage;
-                    player.superCharge = Math.min(100, player.superCharge + 10);
-                    damageTexts.push({ x: nestObject.x, y: nestObject.y - 50, text: '-' + a.damage, life: 30, color: '#e040fb' });
-                    attacks.splice(i, 1);
+            // === TRAFIENIE W AKUMULATOR ===
+            if (!inCastle && accumulators && accumulators.length > 0) {
+                var hitAcc = false;
+                for (var aj = 0; aj < accumulators.length; aj++) {
+                    var acc = accumulators[aj];
+                    if (!acc.active) continue;
+                    var adx = ax - acc.x;
+                    var ady = ay - acc.y;
+                    if (Math.sqrt(adx*adx + ady*ady) < (a.size || 10) + 25) {
+                        acc.hp -= a.damage;
+                        player.superCharge = Math.min(100, player.superCharge + 10);
+                        damageTexts.push({ x: acc.x, y: acc.y - 30, text: '-' + a.damage + ' ⚡', life: 30, color: '#4fc3f7' });
+                        if (acc.hp <= 0) {
+                            acc.active = false;
+                            for (var ep = 0; ep < 25; ep++) {
+                                particles.push({ x: acc.x, y: acc.y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12, life: 45, color: ep%2===0 ? '#4fc3f7' : '#e3f2fd' });
+                            }
+                        }
+                        attacks.splice(i, 1);
+                        hitAcc = true;
+                        break;
+                    }
                 }
+                if (hitAcc) continue;
             }
 
             // Atak na wrogów na arenie (wszystkie tryby)
@@ -222,24 +235,14 @@ function updateAttacks() {
                     var bdx = ax - castleBoss.x;
                     var bdy = ay - castleBoss.y;
                     if (Math.sqrt(bdx*bdx + bdy*bdy) < a.size + 40) {
-                        castleBoss.hp -= a.damage;
-                        player.superCharge = Math.min(100, player.superCharge + 20);
-                        damageTexts.push({ x: castleBoss.x, y: castleBoss.y - 50, text: '-' + a.damage, life: 30, color: '#ffd700' });
+                        // Zbroja redukuje obrażenia do 10%
+                        var bossDmg = bossHasArmor ? Math.max(1, Math.floor(a.damage * 0.1)) : a.damage;
+                        castleBoss.hp -= bossDmg;
+                        player.superCharge = Math.min(100, player.superCharge + (bossHasArmor ? 5 : 20));
+                        var dmgText = bossHasArmor ? ('🛡 ' + bossDmg) : ('-' + bossDmg);
+                        var dmgColor = bossHasArmor ? '#4fc3f7' : '#ffd700';
+                        damageTexts.push({ x: castleBoss.x, y: castleBoss.y - 50, text: dmgText, life: 30, color: dmgColor });
                         attacks.splice(i, 1);
-
-                        // Sprawdź czy boss nie zginął
-                        if (castleBoss.hp <= 0) {
-                            for (var p = 0; p < 30; p++) {
-                                particles.push({
-                                    x: castleBoss.x, y: castleBoss.y,
-                                    vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10,
-                                    life: 40, color: '#ffd700'
-                                });
-                            }
-                            coins += 200;
-                            updateCoins();
-                            castleBoss = null;
-                        }
                     }
                 }
             }

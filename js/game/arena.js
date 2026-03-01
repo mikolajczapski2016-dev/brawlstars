@@ -32,14 +32,20 @@ var bushes = [];
 var arenaLevel = parseInt(localStorage.getItem('arenaLevel')) || 1; // Poziom areny 1-100
 
 // === ZAMEK ===
-var castle = null; // Obiekt zamku
-var inCastle = false; // Czy gracz jest w zamku
-var castleEnemies = []; // Wrogowie w zamku
-var castleFloor = 0; // 0 = parter, 1 = wieża
-var towerEnemies = []; // Wrogowie na wieży
-var castleBoss = null; // Boss w zamku
-var bossDialogShown = false; // Czy dialog z bossem się pojawił
-var bossDialogStep = 0; // Krok dialogu
+var castle = null;
+var inCastle = false;
+var castleEnemies = [];
+var castleFloor = 0;
+var towerEnemies = [];
+var castleBoss = null;
+var bossDialogShown = false;
+var bossDialogStep = 0;
+
+// === SYSTEM ZBROI BOSSA ===
+var accumulators = [];
+var bossHasArmor = false;
+var bossPhase2Started = false;
+var phase2Message = null; // komunikat "FAZA 2!" na ekranie
 
 // bossDialogs zdefiniowane w js/data/config.js
 
@@ -104,6 +110,12 @@ function initArena() {
     for (var i = 0; i < 9; i++) {
         spawnEnemy();
     }
+
+    // Reset systemu zbroi
+    accumulators = [];
+    bossHasArmor = false;
+    bossPhase2Started = false;
+    phase2Message = null;
 
     // Zamek (od poziomu 90)
     inCastle = false;
@@ -183,6 +195,15 @@ function initArena() {
                 color: '#1a0000',
                 type: 'boss'
             };
+
+            // 4 akumulatory zasilające zbroję - rozstawione po arenie
+            bossHasArmor = true;
+            accumulators = [
+                { x: 200, y: 200, hp: 400, maxHp: 400, active: true, pulse: 0 },
+                { x: ARENA_W - 200, y: 200, hp: 400, maxHp: 400, active: true, pulse: 0 },
+                { x: 200, y: ARENA_H - 200, hp: 400, maxHp: 400, active: true, pulse: 0 },
+                { x: ARENA_W - 200, y: ARENA_H - 200, hp: 400, maxHp: 400, active: true, pulse: 0 }
+            ];
         }
     } else {
         castle = null;
@@ -264,6 +285,70 @@ function drawBoss(x, y) {
     ctx.fillText('Zabij bossa aby ukończyć poziom!', x, y + 110);
 }
 
+// === FAZA 2 - gdy zbroja zniszczona ===
+function startBossPhase2() {
+    bossPhase2Started = true;
+    // Boss staje się silniejszy
+    if (castleBoss) {
+        castleBoss.hp = 4000;
+        castleBoss.maxHp = 4000;
+        castleBoss.speed = 2.0;
+        castleBoss.phase2 = true;
+        castleBoss.color = '#4a0000';
+    }
+    // Nowi wrogowie elitarni na arenie
+    for (var i = 0; i < 6; i++) {
+        var ex = 150 + Math.random() * (ARENA_W - 300);
+        var ey = 150 + Math.random() * (ARENA_H - 300);
+        enemies.push({
+            x: ex, y: ey, w: 45, h: 55,
+            hp: 300, maxHp: 300,
+            speed: 2.5,
+            attackCooldown: 0,
+            dir: Math.random() * Math.PI * 2,
+            changeDir: 0,
+            color: '#b71c1c',
+            hasBow: true,
+            type: 'elite',
+            elite: true
+        });
+    }
+    // Komunikat na ekranie
+    phase2Message = { timer: 180 }; // 3 sekundy przy 60fps
+}
+
+// === NAPISY KOŃCOWE ===
+function showCredits() {
+    gameRunning = false;
+    document.getElementById('gameScreen').style.display = 'none';
+    document.getElementById('superBtn').style.display = 'none';
+    var screen = document.getElementById('creditsScreen');
+    screen.style.display = 'flex';
+    var content = document.getElementById('creditsContent');
+    content.style.transform = 'translateY(100vh)';
+    var startTime = null;
+    function scrollCredits(ts) {
+        if (!startTime) startTime = ts;
+        var progress = (ts - startTime) / 15000; // 15 sekund
+        var translateY = 100 - progress * 220;
+        content.style.transform = 'translateY(' + translateY + 'vh)';
+        if (progress < 1.3) {
+            requestAnimationFrame(scrollCredits);
+        }
+    }
+    requestAnimationFrame(scrollCredits);
+}
+
+function restartFromCredits() {
+    document.getElementById('creditsScreen').style.display = 'none';
+    setArenaLevel(1);
+    coins = Math.max(0, coins);
+    saveGame();
+    document.getElementById('lobby').style.display = 'flex';
+    drawLobbyCharacter();
+    drawLobbyBackground();
+}
+
 function getUpgradeLevel(index) {
     // Zwróć poziom ulepszenia dla aktualnie wybranej postaci
     initCharacterUpgrades(selectedCharacter);
@@ -303,6 +388,7 @@ function startGame() {
     particles = [];
     damageTexts = [];
     gameMode = 'arena';
+    gamePaused = false;
     initArena();
     gameRunning = true;
     updateSuperBtn();
@@ -313,6 +399,21 @@ function startGame() {
 }
 
 var gameMode = 'arena';
+var gamePaused = false;
+
+function togglePause() {
+    gamePaused = !gamePaused;
+    var overlay = document.getElementById('pauseOverlay');
+    var btn = document.getElementById('pauseBtn');
+    if (gamePaused) {
+        overlay.style.display = 'flex';
+        btn.textContent = '▶';
+    } else {
+        overlay.style.display = 'none';
+        btn.textContent = '⏸';
+        gameLoop();
+    }
+}
 
 function backToLobby() {
     gameRunning = false;
@@ -340,7 +441,7 @@ document.addEventListener('keydown', function(e) {
         useSuper();
     }
     if (e.key === 'Escape' && gameRunning) {
-        backToLobby();
+        togglePause();
     }
     // Dialog z bossem - ENTER
     if (e.key === 'Enter' && gameRunning && castleBoss && !bossDialogShown) {
@@ -363,12 +464,58 @@ document.addEventListener('click', function(e) {
 
 // === GŁÓWNA PĘTLA GRY ===
 function gameLoop() {
-    if (!gameRunning) return;
+    if (!gameRunning || gamePaused) return;
 
     updatePlayer();
     updateEnemies();
     updateAttacks();
     updateParticles();
+
+    // === SPRAWDŹ AKUMULATORY ===
+    if (arenaLevel >= 100 && bossHasArmor && accumulators.length > 0) {
+        var allDestroyed = true;
+        for (var ai = 0; ai < accumulators.length; ai++) {
+            if (accumulators[ai].active) { allDestroyed = false; break; }
+        }
+        if (allDestroyed) {
+            bossHasArmor = false;
+            startBossPhase2();
+        }
+    }
+    if (phase2Message) {
+        phase2Message.timer--;
+        if (phase2Message.timer <= 0) phase2Message = null;
+    }
+
+    // === SPRAWDŹ CZY BOSS ZGINĄŁ (przy normalnej walce - ze zbroją) ===
+    if (castleBoss && castleBoss.hp <= 0 && !bossPhase2Started) {
+        // Gracz pokonał bossa normalnie (przez zbroję) → napisy końcowe
+        for (var p = 0; p < 40; p++) {
+            particles.push({ x: castleBoss.x, y: castleBoss.y, vx: (Math.random()-0.5)*12, vy: (Math.random()-0.5)*12, life: 50, color: '#ffd700' });
+        }
+        coins += 300;
+        trophies += 50;
+        updateCoins();
+        updateTrophies();
+        saveGame();
+        castleBoss = null;
+        showCredits();
+        return;
+    }
+    // Boss zginął po fazie 2 (zbroja zniszczona wcześniej)
+    if (castleBoss && castleBoss.hp <= 0 && bossPhase2Started) {
+        for (var p = 0; p < 60; p++) {
+            particles.push({ x: castleBoss.x, y: castleBoss.y, vx: (Math.random()-0.5)*14, vy: (Math.random()-0.5)*14, life: 60, color: '#ff1744' });
+        }
+        coins += 500;
+        trophies += 100;
+        updateCoins();
+        updateTrophies();
+        saveGame();
+        castleBoss = null;
+        showCredits();
+        return;
+    }
 
     // === WARUNKI WYGRANEJ / PRZEGRANEJ ===
 

@@ -266,16 +266,30 @@ function drawBoss(x, y) {
     ctx.fillRect(x - 15, y - 18, 6, 8);
     ctx.fillRect(x + 9, y - 18, 6, 8);
 
+    // Tarcza zbroi (gdy aktywna)
+    if (bossHasArmor) {
+        var shieldPulse = Math.sin(time * 5) * 0.15 + 0.85;
+        ctx.strokeStyle = 'rgba(79, 195, 247, ' + shieldPulse + ')';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(x, y - 10, 75, 0, Math.PI*2);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(79, 195, 247, 0.15)';
+        ctx.beginPath();
+        ctx.arc(x, y - 10, 75, 0, Math.PI*2);
+        ctx.fill();
+        // Ikona tarczy
+        ctx.fillStyle = '#4fc3f7';
+        ctx.font = 'bold 18px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('🛡 ZBROJA AKTYWNA', x, y - 120);
+    }
+
     // Napis
-    ctx.fillStyle = '#ffd700';
+    ctx.fillStyle = castleBoss && castleBoss.phase2 ? '#ff1744' : '#ffd700';
     ctx.font = 'bold 24px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('👑 KRÓL ZOMBIE', x, y - 110);
-
-    // Instrukcja
-    ctx.fillStyle = '#fff';
-    ctx.font = '16px Arial';
-    ctx.fillText('Zabij bossa aby ukończyć poziom!', x, y + 110);
+    ctx.fillText(castleBoss && castleBoss.phase2 ? '💀 KRÓL ZOMBIE - FAZA 2' : '👑 KRÓL ZOMBIE', x, y - (bossHasArmor ? 140 : 110));
 }
 
 function drawArena() {
@@ -332,6 +346,63 @@ function drawArena() {
         ctx.strokeStyle = '#6b5335';
         ctx.lineWidth = 2;
         ctx.strokeRect(w.x, w.y, w.w, w.h);
+    }
+
+    // === AKUMULATORY ZBROI ===
+    if (accumulators && accumulators.length > 0) {
+        var now = Date.now() / 1000;
+        for (var ai = 0; ai < accumulators.length; ai++) {
+            var acc = accumulators[ai];
+            if (!acc.active) {
+                // Zniszczony - popioły
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.ellipse(acc.x, acc.y + 5, 20, 8, 0, 0, Math.PI*2);
+                ctx.fill();
+                continue;
+            }
+            var pulse = Math.sin(now * 3 + ai) * 6;
+            // Poświata
+            var grd = ctx.createRadialGradient(acc.x, acc.y, 5, acc.x, acc.y, 50 + pulse);
+            grd.addColorStop(0, 'rgba(79, 195, 247, 0.7)');
+            grd.addColorStop(1, 'rgba(79, 195, 247, 0)');
+            ctx.fillStyle = grd;
+            ctx.beginPath();
+            ctx.arc(acc.x, acc.y, 50 + pulse, 0, Math.PI*2);
+            ctx.fill();
+            // Podstawa
+            ctx.fillStyle = '#37474f';
+            ctx.fillRect(acc.x - 18, acc.y + 10, 36, 20);
+            // Filar
+            ctx.fillStyle = '#546e7a';
+            ctx.fillRect(acc.x - 10, acc.y - 25, 20, 40);
+            // Kryształ
+            ctx.fillStyle = bossHasArmor ? '#4fc3f7' : '#607d8b';
+            ctx.beginPath();
+            ctx.moveTo(acc.x, acc.y - 40 - pulse/2);
+            ctx.lineTo(acc.x - 14, acc.y - 20);
+            ctx.lineTo(acc.x, acc.y - 10);
+            ctx.lineTo(acc.x + 14, acc.y - 20);
+            ctx.closePath();
+            ctx.fill();
+            // Błyskawice między kryształem a bossem (efekt energii)
+            if (bossHasArmor && castleBoss && Math.random() < 0.3) {
+                ctx.strokeStyle = 'rgba(79,195,247,0.5)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([4, 8]);
+                ctx.beginPath();
+                ctx.moveTo(acc.x, acc.y - 30);
+                ctx.lineTo(castleBoss.x, castleBoss.y - 30);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            // HP akumulatora
+            var hpRatio = acc.hp / acc.maxHp;
+            ctx.fillStyle = '#333';
+            ctx.fillRect(acc.x - 20, acc.y - 55, 40, 6);
+            ctx.fillStyle = hpRatio > 0.5 ? '#4fc3f7' : (hpRatio > 0.25 ? '#ffeb3b' : '#f44336');
+            ctx.fillRect(acc.x - 20, acc.y - 55, 40 * hpRatio, 6);
+        }
     }
 
     // === ZAMEK ===
@@ -1229,4 +1300,42 @@ function drawUI() {
     ctx.font = '12px Arial';
     ctx.textAlign = 'left';
     ctx.fillText('WASD = ruch | Klik = atak | SUPER = przycisk | ESC = lobby', 20, 25);
+
+    // === HUD AKUMULATORÓW (poziom 100) ===
+    if (arenaLevel >= 100 && accumulators && accumulators.length > 0) {
+        var hudX = 20;
+        var hudY = canvas.height - 130;
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(hudX, hudY, 220, 40);
+        ctx.fillStyle = '#4fc3f7';
+        ctx.font = 'bold 13px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText('⚡ AKUMULATORY ZBROI:', hudX + 8, hudY + 14);
+        for (var hi = 0; hi < accumulators.length; hi++) {
+            ctx.fillStyle = accumulators[hi].active ? '#4fc3f7' : '#555';
+            ctx.font = '16px Arial';
+            ctx.fillText(accumulators[hi].active ? '⚡' : '💥', hudX + 8 + hi * 50, hudY + 34);
+        }
+        if (!bossHasArmor) {
+            ctx.fillStyle = '#ff1744';
+            ctx.font = 'bold 13px Arial';
+            ctx.fillText('🔥 ZBROJA ZNISZCZONA!', hudX + 8, hudY + 34);
+        }
+    }
+
+    // === KOMUNIKAT FAZY 2 ===
+    if (phase2Message && phase2Message.timer > 0) {
+        var alpha = Math.min(1, phase2Message.timer / 30);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(canvas.width/2 - 220, canvas.height/2 - 60, 440, 120);
+        ctx.fillStyle = '#ff1744';
+        ctx.font = 'bold 52px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('⚠ FAZA 2!', canvas.width/2, canvas.height/2 - 5);
+        ctx.fillStyle = '#fff';
+        ctx.font = '22px Arial';
+        ctx.fillText('Zbroja zniszczona - Boss wściekły!', canvas.width/2, canvas.height/2 + 40);
+        ctx.globalAlpha = 1;
+    }
 }
