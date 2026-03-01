@@ -66,12 +66,8 @@ function setArenaLevel(lvl) {
 function updateArenaLevelDisplay() {
     var disp = document.getElementById('arenaLevelDisplay');
     if (disp) {
-        if (selectedGameMode === 'arena') {
-            disp.style.display = 'block';
-            disp.textContent = '🏆 POZIOM ' + arenaLevel;
-        } else {
-            disp.style.display = 'none';
-        }
+        disp.style.display = 'block';
+        disp.textContent = '🏆 POZIOM ' + arenaLevel;
     }
 }
 
@@ -316,52 +312,7 @@ function startGame() {
   }
 }
 
-// === NOWE TRYBY GRY ===
-var gameMode = 'arena'; // 'arena', 'football', 'nest'
-
-function selectMode(mode) {
-    selectedGameMode = mode;
-    updateModeDisplay();
-    updateArenaLevelDisplay();
-    saveGame();
-    closePanel('modeSelect');
-}
-
-function updateModeDisplay() {
-    var display = document.getElementById('modeDisplay');
-    var icons = { arena: '⚔️', football: '⚽', nest: '🧟' };
-    var names = { arena: 'ARENA', football: 'PIŁKA', nest: 'GNIAZDO' };
-    display.textContent = icons[selectedGameMode] + ' ' + names[selectedGameMode];
-
-    // Podświetlenie w panelu
-    document.querySelectorAll('.mode-card').forEach(function(card) {
-        card.classList.remove('selected');
-    });
-    var selected = document.getElementById('mode-' + selectedGameMode);
-    if (selected) selected.classList.add('selected');
-}
-
-function startMode() {
-    if (selectedGameMode === 'football') {
-        startFootball();
-    } else if (selectedGameMode === 'nest') {
-        startNest();
-    } else {
-        startGame();
-    }
-}
-
-var footballScore = { player: 0, enemy: 0 };
-var footballBall = null;
-var nestObject = null;
-var nestSpawnTimer = 0;
-
-// === PIŁKA NOŻNA 2vs3 z respawnem ===
-var footballAllies = []; // sojusznicy AI
-var footballRespawns = []; // kolejka respawnu
-
-// Funkcja startFootball jest w football.js
-// Funkcja startNest jest w nest.js
+var gameMode = 'arena';
 
 function backToLobby() {
     gameRunning = false;
@@ -414,13 +365,6 @@ document.addEventListener('click', function(e) {
 function gameLoop() {
     if (!gameRunning) return;
 
-    // Specjalne update'y dla trybów
-    if (gameMode === 'football') {
-        updateFootball();
-    } else if (gameMode === 'nest') {
-        updateNest();
-    }
-
     updatePlayer();
     updateEnemies();
     updateAttacks();
@@ -428,37 +372,7 @@ function gameLoop() {
 
     // === WARUNKI WYGRANEJ / PRZEGRANEJ ===
 
-    if (gameMode === 'football') {
-        // Piłka nożna - gra do 2 goli
-        if (footballScore.player >= 2) {
-            gameRunning = false;
-            trophies += 15;
-            robuxProgress += 8;
-            updateTrophies();
-            updateRobux();
-            saveGame();
-            giveReward();
-            return;
-        }
-        if (footballScore.enemy >= 2) {
-            gameRunning = false;
-            alert('⚽ PRZEGRAŁEŚ! Przeciwnik wygrał ' + footballScore.enemy + ':' + footballScore.player);
-            backToLobby();
-            return;
-        }
-    } else if (gameMode === 'nest') {
-        // Gniazdo - wygrana gdy zniszczone gniazdo i wszyscy zombie
-        if (nestObject && nestObject.hp <= 0 && enemies.length === 0) {
-            gameRunning = false;
-            trophies += 20;
-            robuxProgress += 10;
-            updateTrophies();
-            updateRobux();
-            saveGame();
-            giveReward();
-            return;
-        }
-    } else if (gameMode === 'training' || gameMode === 'training-match') {
+    if (gameMode === 'training' || gameMode === 'training-match') {
         // Tryb treningowy - nie ma wygranej
         if (gameMode === 'training' && enemies.length === 0) {
             // Arena treningowa - odradź roboty
@@ -510,20 +424,14 @@ function gameLoop() {
         }
     }
 
-    // Śmierć gracza - wszystkie tryby
+    // Śmierć gracza
     if (player.hp <= 0) {
         gameRunning = false;
         if (gameMode === 'training' || gameMode === 'training-match') {
-            // W trybie treningowym - bez komunikatu
             backToLobby();
         } else {
-            var killed = gameMode === 'arena' ? (9 - enemies.length) : enemies.length;
-            var msg = '💀 Zginąłeś! Nie dostajesz nagród.';
-            if (gameMode === 'nest' && nestObject && nestObject.hp < nestObject.maxHp / 2) {
-                msg += '\nAle zadałeś gniazdu sporo obrażeń - brawo!';
-            }
             saveGame();
-            alert(msg);
+            alert('💀 Zginąłeś! Nie dostajesz nagród.');
             backToLobby();
         }
         return;

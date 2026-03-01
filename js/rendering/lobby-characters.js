@@ -334,7 +334,8 @@ function drawLobbyNoobek(ctx, px, py, skinId, charName) {
         'venom': { leg: '#6a3a5a', foot: '#5a2a4a', body: '#7a4a6a', arm: '#6a3a5a', head: '#8a5a7a', eye: '#ff88aa', pupil: '#aa2255', mouth: 'zombie' },
         'spooky': { leg: '#3a3a3a', foot: '#2a2a2a', body: '#4a4a4a', arm: '#3a3a3a', head: '#5a5a5a', eye: '#ff0000', pupil: '#000000', mouth: 'grim' },
         'cursed': { leg: '#4a2a6a', foot: '#3a1a5a', body: '#5a3a7a', arm: '#4a2a6a', head: '#6a4a8a', eye: '#ff00ff', pupil: '#8800aa', mouth: 'zombie' },
-        'phantom': { leg: '#2a5a6a', foot: '#1a4a5a', body: '#3a6a7a', arm: '#2a5a6a', head: '#4a7a8a', eye: '#ffff00', pupil: '#aa6600', mouth: 'zombie' }
+        'phantom': { leg: '#2a5a6a', foot: '#1a4a5a', body: '#3a6a7a', arm: '#2a5a6a', head: '#4a7a8a', eye: '#ffff00', pupil: '#aa6600', mouth: 'zombie' },
+        'badzombi': { leg: '#1a0a0a', foot: '#0a0000', body: '#2a0000', arm: '#1a0a0a', head: '#1f0000', eye: '#ff2200', pupil: '#000', mouth: 'zombie' }
     };
     var c = colors[skinId] || colors['default'];
     
@@ -418,25 +419,38 @@ function drawLobbyNoobek(ctx, px, py, skinId, charName) {
     ctx.fill();
     // Buzia (groźna - wygięte w dół)
     if (c.mouth === 'zombie') {
-        ctx.fillStyle = '#1a1a1a';
+        // GRYMASA - kąty mocno w dół, środek wysoko
+        ctx.fillStyle = '#0a0000';
         ctx.beginPath();
-        ctx.moveTo(px - 12, py - 15);
-        ctx.quadraticCurveTo(px, py - 22, px + 12, py - 15);
-        ctx.lineTo(px + 12, py - 12);
-        ctx.quadraticCurveTo(px, py - 18, px - 12, py - 12);
+        ctx.moveTo(px - 14, py - 9);   // lewy kąt - bardzo nisko
+        ctx.quadraticCurveTo(px, py - 22, px + 14, py - 9); // środek wysoko
+        ctx.lineTo(px + 14, py - 6);
+        ctx.quadraticCurveTo(px, py - 17, px - 14, py - 6);
+        ctx.closePath();
         ctx.fill();
-        // Kły
-        ctx.fillStyle = '#fff';
+        // Kły zwisające z góry (w środku łuku)
+        ctx.fillStyle = '#f0f0f0';
         ctx.beginPath();
-        ctx.moveTo(px - 8, py - 15);
-        ctx.lineTo(px - 6, py - 20);
-        ctx.lineTo(px - 4, py - 15);
+        ctx.moveTo(px - 7, py - 19);
+        ctx.lineTo(px - 5, py - 11);
+        ctx.lineTo(px - 3, py - 19);
         ctx.fill();
         ctx.beginPath();
-        ctx.moveTo(px + 4, py - 15);
-        ctx.lineTo(px + 6, py - 20);
-        ctx.lineTo(px + 8, py - 15);
+        ctx.moveTo(px + 3, py - 19);
+        ctx.lineTo(px + 5, py - 11);
+        ctx.lineTo(px + 7, py - 19);
         ctx.fill();
+        // Kreski gniewu przy kątach ust
+        ctx.strokeStyle = '#cc0000';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(px - 14, py - 9);
+        ctx.lineTo(px - 19, py - 5);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(px + 14, py - 9);
+        ctx.lineTo(px + 19, py - 5);
+        ctx.stroke();
     } else if (c.mouth === 'grim') {
         ctx.fillStyle = '#000';
         ctx.fillRect(px - 10, py - 18, 20, 4);
@@ -452,6 +466,50 @@ function drawLobbyNoobek(ctx, px, py, skinId, charName) {
         ctx.beginPath();
         ctx.arc(px, py - 17, 8, 0.1, Math.PI - 0.1);
         ctx.stroke();
+    }
+
+    // Specjalne efekty dla skina Bad Zombie
+    if (skinId === 'badzombi') {
+        // Kolce na ramionach
+        ctx.fillStyle = '#555';
+        for (var s = 0; s < 3; s++) {
+            ctx.beginPath();
+            ctx.moveTo(px - 26, py - 10 + s * 7);
+            ctx.lineTo(px - 34, py - 7 + s * 7);
+            ctx.lineTo(px - 26, py - 4 + s * 7);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(px + 26, py - 10 + s * 7);
+            ctx.lineTo(px + 34, py - 7 + s * 7);
+            ctx.lineTo(px + 26, py - 4 + s * 7);
+            ctx.fill();
+        }
+        // Łańcuch na ciele
+        ctx.strokeStyle = '#888';
+        ctx.lineWidth = 2;
+        for (var ch = 0; ch < 5; ch++) {
+            ctx.beginPath();
+            ctx.arc(px - 8 + ch * 4, py - 5, 2, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        // Blizna na twarzy
+        ctx.strokeStyle = '#8b0000';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(px - 5, py - 38);
+        ctx.lineTo(px + 2, py - 28);
+        ctx.stroke();
+        // Czerwona poświata wokół oczu
+        ctx.shadowColor = '#ff0000';
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = '#ff2200';
+        ctx.beginPath();
+        ctx.arc(px - 8, py - 28, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(px + 8, py - 28, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
     }
 }
 

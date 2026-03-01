@@ -254,10 +254,10 @@ function selectCharacter(card, name) {
     }
 }
 
-// Załóż wybraną postać (kliknięcie WYPOŻĄJ)
+// Załóż wybraną postać (kliknięcie WYPOSAŻ)
 function equipCharacter() {
     try {
-        console.log('WYPOŻĄJ: preview=' + previewCharacter + ', selected=' + selectedCharacter);
+        console.log('WYPOSAŻ: preview=' + previewCharacter + ', selected=' + selectedCharacter);
         if (!previewCharacter) {
             alert('Błąd: previewCharacter jest puste!');
             return;
@@ -270,7 +270,8 @@ function equipCharacter() {
         document.getElementById('selectedInfo').textContent = '🎮 Wybrana postać: ' + selectedCharacter;
         updateLobbyAnimation();
         saveGame();
-        alert('Założono postać: ' + selectedCharacter + '!');
+        // Zamiast alert - zamknij panel i wróć do lobby
+        closePanel('characters');
     } catch(e) {
         alert('Błąd w equipCharacter: ' + e.message);
         console.log(e);

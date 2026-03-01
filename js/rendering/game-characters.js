@@ -7,7 +7,8 @@ function drawNoobekInGame(px, py, skinId, charName) {
         'scary': { leg: '#333', foot: '#1a1a1a', body: '#1a1a1a', arm: '#8b0000', head: '#8b0000', eye: '#ff0000', pupil: '#000', mouth: 'grim' },
         'golden': { leg: '#6a6a3a', foot: '#4a4a2a', body: '#7a7a4a', arm: '#6a6a3a', head: '#8a8a5a', eye: '#ffff00', pupil: '#ffaa00', mouth: 'smile' },
         'ninja': { leg: '#2a3a2a', foot: '#1a2a1a', body: '#3a4a3a', arm: '#2a3a2a', head: '#4a5a4a', eye: '#fff', pupil: '#00ff00', mouth: 'serious' },
-        'cosmic': { leg: '#3a5a3a', foot: '#2a4a2a', body: '#4a6a4a', arm: '#3a5a3a', head: '#5a7a5a', eye: '#aaffaa', pupil: '#00aa00', mouth: 'alien' }
+        'cosmic': { leg: '#3a5a3a', foot: '#2a4a2a', body: '#4a6a4a', arm: '#3a5a3a', head: '#5a7a5a', eye: '#aaffaa', pupil: '#00aa00', mouth: 'alien' },
+        'badzombi': { leg: '#1a0a0a', foot: '#0a0000', body: '#2a0000', arm: '#1a0a0a', head: '#1f0000', eye: '#ff2200', pupil: '#000', mouth: 'zombie' }
     };
     var c = colors[skinId] || colors['default'];
     

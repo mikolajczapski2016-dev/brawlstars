@@ -77,12 +77,6 @@ function playerAttack() {
     var worldMY = mouse.y + camera.y;
     var angle = Math.atan2(worldMY - player.y, worldMX - player.x);
 
-    // W PIŁCE NOŻNEJ - jeśli trzymamy piłkę, strzelamy nią!
-    if (gameMode === 'football' && ballHolder === 'player') {
-        shootBall(angle, 25); // silny strzał w kierunku myszki
-        return;
-    }
-
     player.attackCooldown = char.attackCooldown;
 
     attacks.push({
@@ -212,30 +206,6 @@ function launchSuper() {
     if (!player.superReady) return;
 
     // W PIŁCE NOŻNEJ - superatak to mocniejszy strzał piłką!
-    if (gameMode === 'football' && ballHolder === 'player') {
-        player.superReady = false;
-        player.superCharge = 0;
-        player.isSupering = false; // nie wykonujemy skoku
-
-        var worldMX = mouse.x + camera.x;
-        var worldMY = mouse.y + camera.y;
-        var angle = Math.atan2(worldMY - player.y, worldMX - player.x);
-
-        // SUPER STRZAŁ - dużo mocniejszy!
-        shootBall(angle, 40); // 40 zamiast 25 - to jest MEGA strzał!
-
-        // Efekt wizualny - więcej cząsteczek
-        for (var p = 0; p < 15; p++) {
-            particles.push({
-                x: player.x, y: player.y,
-                vx: Math.cos(angle + (Math.random()-0.5)) * 5,
-                vy: Math.sin(angle + (Math.random()-0.5)) * 5,
-                life: 20, color: '#ffff00'
-            });
-        }
-        return;
-    }
-
     player.superReady = false;
     player.superCharge = 0;
     player.isSupering = true;
@@ -267,11 +237,6 @@ function launchSuper() {
 
 // === AKTUALIZACJA GRACZA (Data-Driven) ===
 function updatePlayer() {
-    // W pilce noznej - nie ruszaj się gdy martwy (respawn)
-    if (gameMode === 'football' && player.hp <= 0) {
-        return;
-    }
-
     var char = characters[player.character] || characters[Object.keys(characters)[0]];
     if (!char) return;
 

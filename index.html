@@ -22,11 +22,11 @@
     </div>
 
     <button class="btn btn-side btn-characters" onclick="openPanel('characters')">🎮 POSTACIE</button>
-    <button class="btn btn-side btn-robux" onclick="openPanel('robuxRoad')">💎 ALEJA ROBUX</button>
+    <button class="btn btn-side btn-robux" onclick="openPanel('robuxRoad')">💎 ALEJA MÓZGÓW</button>
     <button class="btn btn-side btn-shop" onclick="openPanel('shop')">🛒 SKLEP</button>
     <button class="btn btn-admin" id="adminBtn" onclick="openPanel('adminPanel')" style="background: linear-gradient(135deg, #9c27b0, #7b1fa2); display: none;">⚙️ ADMIN</button>
-    <button class="btn btn-play" onclick="startMode()">▶ GRAJ</button>
-    <button class="btn btn-mode-display" id="modeDisplay" onclick="openPanel('modeSelect')">⚔️ ARENA</button>
+    <button class="btn btn-play" onclick="startGame()">▶ GRAJ</button>
+    <div class="btn btn-mode-display" style="cursor: default;">⚔️ ARENA</div>
     <div class="arena-level-display" id="arenaLevelDisplay" style="display: none;">🏆 POZIOM 1</div>
 
     <div class="selected-info" id="selectedInfo">🎮 Wybrana postać: Zombie</div>
@@ -80,7 +80,7 @@
                 <canvas id="charPreviewCanvas" width="200" height="200" style="cursor: pointer;" onclick="bouncePreviewChar()"></canvas>
             </div>
             <div class="char-preview-name" id="charPreviewName">Zombie</div>
-            <button id="equipBtn" class="btn" style="margin-top: 15px; background: linear-gradient(180deg, #4caf50, #2e7d32); color: #fff; padding: 12px 30px; font-size: 16px;" onclick="equipCharacter()">🎮 WYPOŻĄJ</button>
+            <button id="equipBtn" class="btn" style="margin-top: 15px; background: linear-gradient(180deg, #4caf50, #2e7d32); color: #fff; padding: 12px 30px; font-size: 16px;" onclick="equipCharacter()">🎮 WYPOSAŻ</button>
         </div>
 
         <div class="char-right">
@@ -143,6 +143,8 @@
         <div class="shop-item" id="shopBurnt"><span class="skin-icon" style="background: #3e2723;">⚫</span><span style="color: #fff; font-weight: 700;">Spalony Boczek</span><span class="price">💰 400</span><button class="upgrade-btn" onclick="buySkinFromShop('burnt', 400)">KUP</button></div>
         <div class="shop-item" id="shopDarkFrost"><span class="skin-icon" style="background: #263238;">🌑</span><span style="color: #fff; font-weight: 700;">Dark Frost</span><span class="price">💰 450</span><button class="upgrade-btn" onclick="buySkinFromShop('darkfrost', 450)">KUP</button></div>
 
+        <div class="shop-item" id="shopBadZombi"><span class="skin-icon" style="background: #1f0000; border: 2px solid #ff2200;">💀</span><span style="color: #ff2200; font-weight: 700;">Bad Zombie</span><span class="price">💰 800</span><button class="upgrade-btn" onclick="buySkinFromShop('badzombi', 800)">KUP</button></div>
+
         <h3 style="color: #42a5f5; margin: 20px 0 10px;">💠 RZADKIE (600-900 💰)</h3>
         <div class="shop-item" id="shopNinja"><span class="skin-icon" style="background: #1a1a2e;">🥷</span><span style="color: #fff; font-weight: 700;">Ninja Zombie</span><span class="price">💰 750</span><button class="upgrade-btn" onclick="buySkinFromShop('ninja', 750)">KUP</button></div>
         <div class="shop-item" id="shopAurora"><span class="skin-icon" style="background: linear-gradient(135deg, #00e676, #00bcd4);">🌌</span><span style="color: #fff; font-weight: 700;">Aurora Frost</span><span class="price">💰 700</span><button class="upgrade-btn" onclick="buySkinFromShop('aurora', 700)">KUP</button></div>
@@ -157,24 +159,11 @@
         <div class="shop-item" style="background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent);"><span class="skin-icon" style="background: linear-gradient(135deg, #ffd700, #ff8f00);">⭐</span><span style="color: #ffd700; font-weight: 700;">Legendarny Zombie</span><span class="price">💰 2500</span><button class="upgrade-btn" style="background: linear-gradient(180deg, #ffd700, #ff8f00); color: #4a3000;" disabled>JUŻ WKROTCE</button></div>
     </div>
 
-    <!-- Panel wyboru trybu -->
-    <div class="char-screen" id="modeSelect">
-        <button class="close-btn" onclick="closePanel('modeSelect')">✕</button>
-        <div style="width: 100%; padding: 30px; overflow-y: auto;">
-            <h2 style="color: #ffd740; text-align: center; font-size: 32px; margin-bottom: 25px;">🎮 WYBIERZ TRYB</h2>
-            <div class="mode-list" style="max-width: 400px; margin: 0 auto;">
-                <button class="mode-card" id="mode-arena" onclick="selectMode('arena')"><span class="mode-icon">⚔️</span><span class="mode-name">ARENA</span><span class="mode-desc">9 wrogów, zdobywaj pucharki!</span></button>
-                <button class="mode-card" id="mode-football" onclick="selectMode('football')"><span class="mode-icon">⚽</span><span class="mode-name">PIŁKA NOŻNA</span><span class="mode-desc">2vs3 z respawnem, gra do 2 goli</span></button>
-                <button class="mode-card" id="mode-nest" onclick="selectMode('nest')"><span class="mode-icon">🧟</span><span class="mode-name">GNIAZDO</span><span class="mode-desc">Zniszcz gniazdo zombie!</span></button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Aleja Robux -->
+    <!-- Aleja Mózgów -->
     <div class="char-screen" id="robuxRoad">
         <button class="close-btn" onclick="closePanel('robuxRoad')">✕</button>
         <div style="width: 100%; padding: 30px; overflow-y: auto;">
-            <h2 style="color: #76ff03; text-align: center; font-size: 32px; margin-bottom: 10px;">💎 ALEJA ROBUX</h2>
+            <h2 style="color: #76ff03; text-align: center; font-size: 32px; margin-bottom: 10px;">💎 ALEJA MÓZGÓW</h2>
             <p style="color: rgba(255,255,255,0.6); text-align: center; margin-bottom: 25px; font-size: 14px;">Zbieraj robux za wygrywanie aren i odblokuj nowe postacie!</p>
             <div class="char-cards-grid" id="robuxRoadList"></div>
         </div>
@@ -260,8 +249,7 @@
 <script src="js/game/player.js"></script>
 <script src="js/game/enemies.js"></script>
 <script src="js/game/attacks.js"></script>
-<script src="js/game/football.js"></script>
-<script src="js/game/nest.js"></script>
+
 
 <!-- 5. Inicjalizacja (uruchamia grę) -->
 <script>

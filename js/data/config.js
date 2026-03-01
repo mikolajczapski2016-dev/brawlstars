@@ -18,7 +18,8 @@ var skinPrices = {
     'aurora': 700,
     'diamond': 900,
     'darkfrost': 450,
-    'lavaking': 1500
+    'lavaking': 1500,
+    'badzombi': 800
 };
 
 // Dialog z bossem (zamek)
