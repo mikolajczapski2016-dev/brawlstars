@@ -106,20 +106,22 @@ function redeemCreatorCode() {
     var codeInput = document.getElementById('creatorCode');
     var messageEl = document.getElementById('codeMessage');
     var code = codeInput.value.trim().toLowerCase();
-    
+
     if (code === '') {
         messageEl.textContent = 'Wpisz kod!';
         messageEl.style.color = '#ff5555';
         return;
     }
-    
-    if (creatorCodeUsed) {
-        messageEl.textContent = 'Ten kod został już wykorzystany!';
+
+    // Sprawdź czy ten konkretny kod był już użyty
+    if (usedCreatorCodes.indexOf(code) !== -1) {
+        messageEl.textContent = '❌ Ten kod już został użyty!';
         messageEl.style.color = '#ff5555';
+        codeInput.value = '';
         return;
     }
-    
-    // Szukaj kodu w bazie (z localStorage)
+
+    // Szukaj kodu w bazie
     var validCode = null;
     for (var i = 0; i < creatorCodes.length; i++) {
         if (creatorCodes[i].code === code) {
@@ -129,17 +131,17 @@ function redeemCreatorCode() {
             break;
         }
     }
-    
+
     if (validCode) {
         coins += validCode.reward;
         updateCoins();
-        creatorCodeUsed = true;
+        usedCreatorCodes.push(code);
+        localStorage.setItem('usedCreatorCodes', JSON.stringify(usedCreatorCodes));
         saveGame();
-        
+
         messageEl.textContent = '🎉 SUKCES! Otrzymano ' + validCode.reward + ' monet!';
         messageEl.style.color = '#4cff50';
         codeInput.value = '';
-        codeInput.disabled = true;
     } else {
         messageEl.textContent = '❌ Nieprawidłowy kod!';
         messageEl.style.color = '#ff5555';

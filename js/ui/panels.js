@@ -13,6 +13,7 @@ var adminSettings = JSON.parse(localStorage.getItem('adminSettings')) || {
     allowCodeChange: false
 };
 var creatorCodeUsed = false;
+var usedCreatorCodes = JSON.parse(localStorage.getItem('usedCreatorCodes')) || [];
 
 // Star Drop state variables
 var starDropClicks = 0;
@@ -39,16 +40,9 @@ function openPanel(id) {
     }
     if (id === 'shop') {
         updateShopButtons();
-        // Zaktualizuj pole kodu twórców
-        var codeInput = document.getElementById('creatorCode');
-        if (codeInput) {
-            codeInput.disabled = creatorCodeUsed;
-            var messageEl = document.getElementById('codeMessage');
-            if (creatorCodeUsed && messageEl) {
-                messageEl.textContent = 'Kod został już wykorzystany!';
-                messageEl.style.color = '#888';
-            }
-        }
+        // Wyczyść komunikat kodu przy otwarciu sklepu
+        var messageEl = document.getElementById('codeMessage');
+        if (messageEl) messageEl.textContent = '';
     }
     if (id === 'characters') {
         previewCharacter = selectedCharacter; // ustaw podgląd na aktualną postać
@@ -223,6 +217,20 @@ function renderAdminPanel() {
         '<div style="margin-top:10px;"><label style="color:#aaa;">Wersja:</label> <input type="text" id="versionInput" value="' + adminSettings.version + '" onchange="updateAdminSetting(\'version\', this.value)" style="padding:5px;border-radius:5px;border:1px solid #555;background:#222;color:#fff;width:80px;"></div>' +
         '<div style="margin-top:10px;"><label style="color:#aaa;">Max monet:</label> <input type="number" id="maxCoinsInput" value="' + adminSettings.maxCoins + '" onchange="updateAdminSetting(\'maxCoins\', parseInt(this.value))" style="padding:5px;border-radius:5px;border:1px solid #555;background:#222;color:#fff;width:120px;"></div>' +
         '<div style="margin-top:10px;"><button onclick="resetGame()" style="background:#ff5555;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;">🔄 RESETUJ GRĘ</button></div>' +
+        '</div>' +
+        '<div style="text-align:left;margin-bottom:20px;">' +
+        '<h3 style="color:#76ff03;margin-bottom:10px;">🧠 Aleja Mózgów:</h3>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">' +
+        '<button onclick="adminAddRobux(1)"  style="background:#1b5e20;color:#76ff03;border:2px solid #76ff03;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:bold;">+1 🧠</button>' +
+        '<button onclick="adminAddRobux(5)"  style="background:#1b5e20;color:#76ff03;border:2px solid #76ff03;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:bold;">+5 🧠</button>' +
+        '<button onclick="adminAddRobux(10)" style="background:#1b5e20;color:#76ff03;border:2px solid #76ff03;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:bold;">+10 🧠</button>' +
+        '<button onclick="adminAddRobux(50)" style="background:#2e7d32;color:#76ff03;border:2px solid #76ff03;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:bold;">+50 🧠</button>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;align-items:center;">' +
+        '<input type="number" id="customRobuxAmount" placeholder="Ilość" min="1" value="10" style="padding:8px;border-radius:5px;border:1px solid #555;background:#222;color:#fff;width:90px;">' +
+        '<button onclick="adminAddRobux(parseInt(document.getElementById(\'customRobuxAmount\').value)||0)" style="background:#33691e;color:#76ff03;border:2px solid #76ff03;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:bold;">DODAJ</button>' +
+        '</div>' +
+        '<div style="color:#aaa;font-size:13px;margin-top:8px;">Aktualnie: <span style="color:#76ff03;font-weight:bold;" id="adminRobuxDisplay">' + robuxProgress + '</span> 🧠</div>' +
         '</div>';
 }
 
@@ -257,6 +265,15 @@ function deleteCreatorCode(index) {
         saveCreatorCodes();
         renderAdminPanel();
     }
+}
+
+function adminAddRobux(amount) {
+    if (!amount || amount <= 0) return;
+    robuxProgress += amount;
+    updateRobux();
+    saveGame();
+    var disp = document.getElementById('adminRobuxDisplay');
+    if (disp) disp.textContent = robuxProgress;
 }
 
 function updateAdminSetting(key, value) {

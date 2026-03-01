@@ -1,5 +1,58 @@
 // Lobby character rendering functions
 
+// === EFEKTY WYJŚCIA Z GROBU (wspólne dla wszystkich postaci) ===
+function drawGraveDirt(ctx, px, py) {
+    // Brązowe kępy ziemi — statyczne pozycje na ciele
+    var dirtSpots = [
+        { x: -10, y: -28, rx: 5, ry: 3, a: -0.3 },
+        { x:   9, y: -18, rx: 4, ry: 2.5, a:  0.5 },
+        { x:  -5, y:  -2, rx: 6, ry: 4,   a:  0.1 },
+        { x:  13, y:   6, rx: 4, ry: 3,   a: -0.2 },
+        { x: -15, y:  -8, rx: 3, ry: 2,   a:  0.4 },
+        { x:   3, y:  -10, rx: 3, ry: 2,  a: -0.1 },
+        { x:  -8, y:  14, rx: 5, ry: 3,   a:  0.2 },
+        { x:  11, y: -30, rx: 3, ry: 2,   a: -0.4 },
+        { x: -16, y:  10, rx: 4, ry: 2.5, a:  0.3 },
+    ];
+    ctx.fillStyle = 'rgba(90, 52, 18, 0.72)';
+    for (var i = 0; i < dirtSpots.length; i++) {
+        var d = dirtSpots[i];
+        ctx.beginPath();
+        ctx.ellipse(px + d.x, py + d.y, d.rx, d.ry, d.a, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    // Kępki trawy przy nogach — jakby właśnie wyszedł z ziemi
+    ctx.fillStyle = 'rgba(80, 48, 15, 0.85)';
+    ctx.fillRect(px - 20, py + 26, 40, 5);
+    var grassTufts = [-16, -9, -2, 5, 13];
+    for (var g = 0; g < grassTufts.length; g++) {
+        ctx.fillStyle = g % 2 === 0 ? '#3a6b20' : '#2d5519';
+        ctx.beginPath();
+        ctx.moveTo(px + grassTufts[g],     py + 26);
+        ctx.lineTo(px + grassTufts[g] - 2, py + 18);
+        ctx.lineTo(px + grassTufts[g] + 2, py + 20);
+        ctx.lineTo(px + grassTufts[g] + 4, py + 26);
+        ctx.closePath();
+        ctx.fill();
+    }
+    // Robak
+    ctx.fillStyle = '#c8b46a';
+    ctx.beginPath();
+    ctx.arc(px - 5, py + 4, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(px - 8, py + 6, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(px - 10, py + 8, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Postrzępiony kawałek materiału (strzęp)
+    ctx.fillStyle = 'rgba(25, 15, 5, 0.55)';
+    ctx.fillRect(px - 17, py + 8, 5, 3);
+    ctx.fillRect(px + 11, py + 12, 4, 2);
+    ctx.fillRect(px - 14, py - 8, 4, 2);
+}
+
 function drawLobbyToksyk(ctx, px, py, skinId) {
     var time = Date.now() / 1000;
     
@@ -121,6 +174,7 @@ function drawLobbyToksyk(ctx, px, py, skinId) {
         ctx.ellipse(px + 25, py + bounce, 4, 6, 0, 0, Math.PI * 2);
         ctx.fill();
     }
+    drawGraveDirt(ctx, px, py);
 }
 
 function drawLobbyZlotek(ctx, px, py, skinId) {
@@ -198,6 +252,22 @@ function drawLobbyZlotek(ctx, px, py, skinId) {
     ctx.beginPath();
     ctx.ellipse(px + 8, py + 18 + bounce, 12, 5, 0, 0, Math.PI * 2);
     ctx.fill();
+    // Martwe oczy (szare X zamiast kolorowych źrenic)
+    ctx.strokeStyle = 'rgba(80,60,0,0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(px - 10, py - 28); ctx.lineTo(px - 4, py - 22);
+    ctx.moveTo(px - 4,  py - 28); ctx.lineTo(px - 10, py - 22);
+    ctx.moveTo(px + 4,  py - 28); ctx.lineTo(px + 10, py - 22);
+    ctx.moveTo(px + 10, py - 28); ctx.lineTo(px + 4,  py - 22);
+    ctx.stroke();
+    // Rysa na koronie
+    ctx.strokeStyle = 'rgba(120, 80, 0, 0.7)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(px - 2, py - 68); ctx.lineTo(px + 3, py - 55); ctx.lineTo(px - 1, py - 48);
+    ctx.stroke();
+    drawGraveDirt(ctx, px, py);
 }
 
 function drawLobbyDuszek(ctx, px, py, skinId) {
@@ -282,22 +352,32 @@ function drawLobbyDuszek(ctx, px, py, skinId) {
     ctx.arc(px + 10, py - 14 + floatY, 4, 0, Math.PI * 2);
     ctx.fill();
     
-    // Przerażający uśmiech
+    // Grymasa zombie-ducha (odwrócony uśmiech)
     ctx.strokeStyle = c.eye;
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.arc(px, py + floatY + 2, 12, 0.2, Math.PI - 0.2);
+    ctx.arc(px, py + floatY + 2, 12, 0.2, Math.PI - 0.2, true);
     ctx.stroke();
     
+    // Nagrobek za duchem — wyłania się z grobu!
+    ctx.fillStyle = '#555';
+    ctx.fillRect(px - 16, py + 30, 32, 40);
+    ctx.fillStyle = '#444';
+    ctx.beginPath();
+    ctx.arc(px, py + 30, 16, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(200,200,200,0.5)';
+    ctx.font = 'bold 10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('R.I.P', px, py + 46);
+
     // Długie ręce-widma
     ctx.strokeStyle = c.body;
     ctx.lineWidth = 6;
-    // Lewa ręka
     ctx.beginPath();
     ctx.moveTo(px - 25, py + floatY - 5);
     ctx.quadraticCurveTo(px - 45, py + floatY + 10 - wave*2, px - 50, py + floatY + 25);
     ctx.stroke();
-    // Prawa ręka
     ctx.beginPath();
     ctx.moveTo(px + 25, py + floatY - 5);
     ctx.quadraticCurveTo(px + 45, py + floatY + 10 + wave*2, px + 50, py + floatY + 25);
@@ -311,6 +391,124 @@ function drawLobbyDuszek(ctx, px, py, skinId) {
     ctx.beginPath();
     ctx.arc(px + 50, py + floatY + 25, 4, 0, Math.PI * 2);
     ctx.fill();
+    drawGraveDirt(ctx, px, py);
+}
+
+// === ULTRA ZOMBI - super zombie ===
+function drawLobbyUltraZombi(ctx, px, py, skinId) {
+    var time = Date.now() / 1000;
+    var pulse = Math.sin(time * 2) * 4;
+
+    // Poświata różowo-magentowa
+    var grd = ctx.createRadialGradient(px, py - 10, 10, px, py - 10, 70 + pulse);
+    grd.addColorStop(0, 'rgba(233, 30, 99, 0.45)');
+    grd.addColorStop(1, 'rgba(233, 30, 99, 0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(px, py - 10, 70 + pulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cień
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(px, py + 32, 28, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Masywne nogi
+    ctx.fillStyle = '#ad1457';
+    ctx.fillRect(px - 16, py + 8,  12, 22);
+    ctx.fillRect(px + 4,  py + 8,  12, 22);
+    ctx.fillStyle = '#880e4f';
+    ctx.fillRect(px - 18, py + 27, 14, 6);
+    ctx.fillRect(px + 4,  py + 27, 14, 6);
+
+    // Masywne ciało
+    ctx.fillStyle = '#e91e63';
+    ctx.fillRect(px - 22, py - 18, 44, 28);
+    // Blizna
+    ctx.strokeStyle = '#880e4f';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(px - 8, py - 15); ctx.lineTo(px - 2, py - 5); ctx.lineTo(px - 8, py + 3);
+    ctx.stroke();
+    // Plama krwi
+    ctx.fillStyle = '#880e4f';
+    ctx.beginPath();
+    ctx.ellipse(px + 7, py - 3, 8, 6, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Ogromne ramiona
+    ctx.fillStyle = '#c2185b';
+    ctx.fillRect(px - 34, py - 16, 12, 26);
+    ctx.fillRect(px + 22, py - 16, 12, 26);
+    // Pięści z kłykciami
+    ctx.fillStyle = '#ad1457';
+    ctx.fillRect(px - 36, py + 8, 14, 10);
+    ctx.fillRect(px + 22, py + 8, 14, 10);
+    ctx.fillStyle = '#e91e63';
+    for (var k = 0; k < 3; k++) {
+        ctx.fillRect(px - 34 + k * 4, py + 7, 3, 4);
+        ctx.fillRect(px + 24 + k * 4, py + 7, 3, 4);
+    }
+
+    // Głowa — wielka, kwadratowa
+    ctx.fillStyle = '#f06292';
+    ctx.fillRect(px - 24, py - 44, 48, 30);
+    ctx.fillStyle = '#880e4f';
+    ctx.fillRect(px - 14, py - 42, 12, 5);
+
+    // Kolce na głowie
+    ctx.fillStyle = '#ad1457';
+    for (var sp = -2; sp <= 2; sp++) {
+        ctx.beginPath();
+        ctx.moveTo(px + sp * 9 - 4, py - 44);
+        ctx.lineTo(px + sp * 9,     py - 44 - 10 - Math.abs(sp) * 2 + pulse * 0.3);
+        ctx.lineTo(px + sp * 9 + 4, py - 44);
+        ctx.fill();
+    }
+
+    // Oczy — żółte świecące
+    ctx.shadowColor = '#ffeb3b';
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = '#ffeb3b';
+    ctx.beginPath();
+    ctx.arc(px - 9, py - 30, 7, 0, Math.PI * 2);
+    ctx.arc(px + 9, py - 30, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ff0000';
+    ctx.beginPath();
+    ctx.arc(px - 9, py - 30, 4, 0, Math.PI * 2);
+    ctx.arc(px + 9, py - 30, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Groźne brwi
+    ctx.fillStyle = '#1a0000';
+    ctx.beginPath();
+    ctx.moveTo(px - 16, py - 40); ctx.lineTo(px - 3, py - 38); ctx.lineTo(px - 3, py - 36); ctx.lineTo(px - 16, py - 37);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(px + 16, py - 40); ctx.lineTo(px + 3, py - 38); ctx.lineTo(px + 3, py - 36); ctx.lineTo(px + 16, py - 37);
+    ctx.fill();
+
+    // Pysk z kłami
+    ctx.fillStyle = '#1a0000';
+    ctx.beginPath();
+    ctx.moveTo(px - 14, py - 17);
+    ctx.quadraticCurveTo(px, py - 26, px + 14, py - 17);
+    ctx.lineTo(px + 14, py - 14);
+    ctx.quadraticCurveTo(px, py - 22, px - 14, py - 14);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#f5f5f5';
+    ctx.beginPath();
+    ctx.moveTo(px - 8, py - 17); ctx.lineTo(px - 5, py - 10); ctx.lineTo(px - 2, py - 17);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(px + 2, py - 17); ctx.lineTo(px + 5, py - 10); ctx.lineTo(px + 8, py - 17);
+    ctx.fill();
+
+    drawGraveDirt(ctx, px, py);
 }
 
 function drawLobbyNoobek(ctx, px, py, skinId, charName) {
@@ -511,6 +709,7 @@ function drawLobbyNoobek(ctx, px, py, skinId, charName) {
         ctx.fill();
         ctx.shadowBlur = 0;
     }
+    drawGraveDirt(ctx, px, py);
 }
 
 function drawLobbyBlazer(ctx, px, py, skinId) {
@@ -559,12 +758,20 @@ function drawLobbyBlazer(ctx, px, py, skinId) {
     ctx.arc(px - 6, py - 29, 3, 0, Math.PI*2);
     ctx.arc(px + 8, py - 29, 3, 0, Math.PI*2);
     ctx.fill();
-    // Uśmiech
+    // Grymasa zombie (odwrócony uśmiech)
     ctx.strokeStyle = c.smile;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(px, py - 22, 7, 0.2, Math.PI - 0.2);
+    ctx.arc(px, py - 22, 7, 0.2, Math.PI - 0.2, true);
     ctx.stroke();
+    // Czarne obwódki oczu — wyglądają jak po wybudzeniu z grobu
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(px - 7, py - 30, 6, 0, Math.PI * 2);
+    ctx.arc(px + 7, py - 30, 6, 0, Math.PI * 2);
+    ctx.stroke();
+    drawGraveDirt(ctx, px, py);
 }
 
 function drawLobbyFrostik(ctx, px, py, skinId) {
@@ -611,12 +818,29 @@ function drawLobbyFrostik(ctx, px, py, skinId) {
     ctx.arc(px - 6, py - 29, 3, 0, Math.PI*2);
     ctx.arc(px + 8, py - 29, 3, 0, Math.PI*2);
     ctx.fill();
-    // Uśmiech
+    // Grymasa zombie
     ctx.strokeStyle = c.smile;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(px, py - 22, 7, 0.2, Math.PI - 0.2);
+    ctx.arc(px, py - 22, 7, 0.2, Math.PI - 0.2, true);
     ctx.stroke();
+    // Pęknięcia lodu — zamrożony zombie
+    ctx.strokeStyle = 'rgba(150, 220, 255, 0.8)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(px - 5, py - 15); ctx.lineTo(px - 12, py - 5); ctx.lineTo(px - 8, py);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(px + 4, py - 10); ctx.lineTo(px + 9, py - 3);
+    ctx.stroke();
+    // Ciemne obwódki oczu
+    ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(px - 7, py - 30, 6, 0, Math.PI * 2);
+    ctx.arc(px + 7, py - 30, 6, 0, Math.PI * 2);
+    ctx.stroke();
+    drawGraveDirt(ctx, px, py);
 }
 
 function drawLobbyCieniak(ctx, px, py, skinId) {
@@ -679,6 +903,7 @@ function drawLobbyCieniak(ctx, px, py, skinId) {
     ctx.ellipse(px - 12, py + 18, 8, 4, -0.3, 0, Math.PI * 2);
     ctx.ellipse(px + 12, py + 18, 8, 4, 0.3, 0, Math.PI * 2);
     ctx.fill();
+    drawGraveDirt(ctx, px, py);
 }
 
 function drawLobbyMagmak(ctx, px, py, skinId) {
@@ -751,15 +976,25 @@ function drawLobbyMagmak(ctx, px, py, skinId) {
     ctx.arc(px + 7, py - 4, 2, 0, Math.PI * 2);
     ctx.fill();
     
-    // Uśmiech
+    // Grymasa wulkanicznego zombie
     ctx.strokeStyle = '#222';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(px, py + 3, 6, 0.2, Math.PI - 0.2);
+    ctx.arc(px, py + 3, 6, 0.2, Math.PI - 0.2, true);
     ctx.stroke();
-    
+    // Pęknięcia na skale
+    ctx.strokeStyle = 'rgba(255,100,0,0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(px - 8, py - 20); ctx.lineTo(px - 4, py - 10); ctx.lineTo(px - 10, py - 3);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(px + 5, py - 15); ctx.lineTo(px + 9, py - 8);
+    ctx.stroke();
+
     // Ręce
     ctx.fillStyle = c.mountainDark;
     ctx.fillRect(px - 26, py - 8, 6, 14);
     ctx.fillRect(px + 20, py - 8, 6, 14);
+    drawGraveDirt(ctx, px, py);
 }

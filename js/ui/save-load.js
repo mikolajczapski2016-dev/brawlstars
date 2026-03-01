@@ -17,7 +17,8 @@ function saveGame() {
         claimedRobuxRewards: claimedRobuxRewards,
         creatorCodeUsed: creatorCodeUsed,
         unlockedCharacters: unlockedCharacters,
-        selectedCharacter: selectedCharacter
+        selectedCharacter: selectedCharacter,
+        hyperchargedCharacters: hyperchargedCharacters
     };
     localStorage.setItem('brawlblox_save', JSON.stringify(data));
     localStorage.setItem('arenaLevel', arenaLevel);
@@ -93,15 +94,9 @@ function loadGame() {
     
     if (data.creatorCodeUsed) {
         creatorCodeUsed = data.creatorCodeUsed;
-        var codeInput = document.getElementById('creatorCode');
-        if (codeInput) {
-            codeInput.disabled = creatorCodeUsed;
-            var messageEl = document.getElementById('codeMessage');
-            if (messageEl && creatorCodeUsed) {
-                messageEl.textContent = 'Kod został już wykorzystany!';
-                messageEl.style.color = '#888';
-            }
-        }
+    }
+    if (data.hyperchargedCharacters) {
+        hyperchargedCharacters = data.hyperchargedCharacters;
     }
     // Przywróć animację po załadowaniu wszystkiego
     if (data.currentSkin) {
@@ -134,7 +129,8 @@ function resetGame() {
     robuxProgress = 0;
     claimedRobuxRewards = [];
     unlockedCharacters = ['Zombie', 'Toksyk', 'Duszek', 'Złotek', 'UltraZombi'];
-    characterUpgrades = {}; // reset ulepszeń
+    characterUpgrades = {};
+    hyperchargedCharacters = {};
     updateCoins();
     updateTrophies();
     updateRobux();

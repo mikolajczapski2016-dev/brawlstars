@@ -1019,7 +1019,7 @@ function drawPlayer() {
     else if (gameChar.skinFamily === 'frostik') drawFrostikInGame(px, py, player.skin);
     else if (gameChar.skinFamily === 'cieniak') drawCieniakInGame(px, py, player.skin);
     else if (gameChar.skinFamily === 'magmak') drawMagmakInGame(px, py, player.skin);
-    else if (gameChar.skinFamily === 'ultrazombi') drawDuszekInGame(px, py, player.skin);
+    else if (gameChar.skinFamily === 'ultrazombi') drawUltraZombiInGame(px, py, player.skin);
     else if (gameChar.skinFamily === 'zlotek') drawZlotekInGame(px, py, player.skin);
     else if (gameChar.skinFamily === 'toksyk') drawToksykInGame(px, py, player.skin);
     else if (gameChar.skinFamily === 'duszek') drawDuszekInGame(px, py, player.skin);
@@ -1199,6 +1199,36 @@ function drawEnemy(e) {
         ctx.textAlign = 'center';
         ctx.fillText('🔥', e.x, e.y - 55);
     }
+    // Etykieta typu zombie
+    if (e.label) {
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(e.label, e.x, e.y - 58);
+    }
+    // Zbroja rycerza
+    if (e.hasArmor) {
+        ctx.strokeStyle = 'rgba(189,189,189,0.6)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y - 10, 28, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    // Szaman leczący — zielony efekt
+    if (e.isShaman && e.healCooldown < 30) {
+        ctx.strokeStyle = 'rgba(0,230,118,0.6)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y - 10, 35, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    // Berserk — czerwony blask przy niskim HP
+    if (e.type === 'zombieBerserker' && e.hp < e.maxHp * 0.4) {
+        ctx.strokeStyle = 'rgba(183,28,28,0.7)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y - 10, 30, 0, Math.PI * 2);
+        ctx.stroke();
+    }
 }
 
 function drawAlly(a) {
@@ -1269,11 +1299,38 @@ function drawUI() {
     // Super bar
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.fillRect(20, canvas.height - 80, 204, 20);
-    ctx.fillStyle = player.superCharge >= 100 ? '#ffff00' : '#ff9800';
+    var superColor = player.hasHypercharge ? (player.superCharge >= 100 ? '#bf00ff' : '#9c00cc') : (player.superCharge >= 100 ? '#ffff00' : '#ff9800');
+    ctx.fillStyle = superColor;
     ctx.fillRect(22, canvas.height - 78, 200 * (player.superCharge / 100), 16);
+    if (player.hasHypercharge && player.superCharge >= 100) {
+        var t = Date.now() / 1000;
+        ctx.shadowColor = '#bf00ff';
+        ctx.shadowBlur = 10 + Math.sin(t * 6) * 5;
+    }
     ctx.fillStyle = '#fff';
     ctx.font = 'bold 12px Arial';
-    ctx.fillText(player.superCharge >= 100 ? 'SUPER GOTOWY! [SPACJA]' : 'SUPER ' + Math.floor(player.superCharge) + '%', 122, canvas.height - 67);
+    var superLabel = player.superCharge >= 100 ? 'SUPER GOTOWY! [SPACJA]' : 'SUPER ' + Math.floor(player.superCharge) + '%';
+    ctx.fillText(superLabel, 122, canvas.height - 67);
+    ctx.shadowBlur = 0;
+
+    // Pasek Hypercharge (pod super barem)
+    if (player.hasHypercharge) {
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(20, canvas.height - 56, 204, 14);
+        var hc = player.hyperchargeCharge / 100;
+        var hcColor = player.hyperchargeCharge >= 100 ? '#bf00ff' : '#7b00cc';
+        if (player.hyperchargeCharge >= 100) {
+            ctx.shadowColor = '#bf00ff';
+            ctx.shadowBlur = 8 + Math.sin(Date.now()/200) * 4;
+        }
+        ctx.fillStyle = hcColor;
+        ctx.fillRect(22, canvas.height - 54, 200 * hc, 10);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 10px Arial';
+        var hcLabel = player.hyperchargeCharge >= 100 ? '⚡ HYPERCHARGE GOTOWY!' : '⚡ HYPERCHARGE ' + Math.floor(player.hyperchargeCharge) + '%';
+        ctx.fillText(hcLabel, 122, canvas.height - 44);
+    }
 
     // Monety
     ctx.fillStyle = 'rgba(0,0,0,0.6)';

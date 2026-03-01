@@ -110,6 +110,24 @@ function useSuper() {
     var char = characters[player.character] || characters[Object.keys(characters)[0]];
     if (!char) return;
 
+    // HYPERCHARGE — wzmocnienie superataku gdy pasek naładowany
+    if (player.hasHypercharge && player.hyperchargeCharge >= 100) {
+        var hchar = Object.assign({}, char);
+        hchar.superDamage   = Math.round((char.superDamage   || 50)  * 1.5);
+        hchar.superRadius   = Math.round((char.superRadius   || 100) * 1.4);
+        hchar.superRange    = Math.round((char.superRange    || 300) * 1.3);
+        hchar.superDuration = Math.round((char.superDuration || 180) * 1.3);
+        hchar.superKnockback = Math.round((char.superKnockback || 60) * 1.3);
+        player._hchar = hchar;
+        player.hyperchargeCharge = 0;
+        for (var hp = 0; hp < 24; hp++) {
+            var ha = (hp / 24) * Math.PI * 2;
+            particles.push({ x: player.x, y: player.y, vx: Math.cos(ha)*7, vy: Math.sin(ha)*7, life: 40, color: '#bf00ff' });
+        }
+    } else {
+        player._hchar = null;
+    }
+
     // Cieniak - czarna dziura od razu, bez celowania!
     if (char.superType === 'blackhole') {
         player.superCharge = 0;
@@ -211,7 +229,7 @@ function launchSuper() {
     player.isSupering = true;
     player.superProgress = 0;
 
-    var char = characters[player.character] || characters[Object.keys(characters)[0]];
+    var char = player._hchar || characters[player.character] || characters[Object.keys(characters)[0]];
     if (!char) return;
 
     var worldMX = mouse.x + camera.x;
@@ -237,7 +255,7 @@ function launchSuper() {
 
 // === AKTUALIZACJA GRACZA (Data-Driven) ===
 function updatePlayer() {
-    var char = characters[player.character] || characters[Object.keys(characters)[0]];
+    var char = player._hchar || characters[player.character] || characters[Object.keys(characters)[0]];
     if (!char) return;
 
     if (player.isSupering) {
@@ -269,7 +287,7 @@ function updatePlayer() {
             }
 
             // Zakończ super od razu
-            player.isSupering = false;
+            player.isSupering = false; player._hchar = null;
             player.superProgress = 0;
         } else {
             player.superProgress += char.superSpeed;
@@ -316,7 +334,7 @@ function updatePlayer() {
             }
 
             if (player.superProgress >= 1) {
-                player.isSupering = false;
+                player.isSupering = false; player._hchar = null;
                 player.x = player.superTargetX;
                 player.y = player.superTargetY;
                 for (var i = 0; i < enemies.length; i++) enemies[i].hitByCharge = false;
@@ -329,7 +347,7 @@ function updatePlayer() {
             // SKOK (Noobek, Frostik) - w górę i w dół
             if (player.superProgress >= 1) {
                 player.superProgress = 1;
-                player.isSupering = false;
+                player.isSupering = false; player._hchar = null;
                 player.x = player.superTargetX;
                 player.y = player.superTargetY;
 

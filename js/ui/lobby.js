@@ -155,10 +155,14 @@ function renderRobuxRoad() {
 
         // Treść karty - pokaż ile brakuje jeśli to aktualna postać
         var progressHtml = '';
-        if (isCurrent) {
+        if (isCurrent && unlocked) {
+            progressHtml = '<div style="color:#00c853; font-size:13px; font-weight:bold; margin-top:5px;">✅ Uzbierałeś ' + robuxProgress + ' 🧠!</div>';
+        } else if (isCurrent) {
             var needed = r.req - robuxProgress;
-            progressHtml = '<div style="color:#76ff03; font-size:12px; margin-top:5px;">💎 Masz: ' + robuxProgress + '</div>' +
-                          '<div style="color:#ff9800; font-size:12px;">📊 Brakuje: ' + needed + '</div>';
+            var pct = Math.min(100, Math.round(robuxProgress / r.req * 100));
+            progressHtml = '<div style="color:#76ff03; font-size:12px; margin-top:5px;">🧠 Masz: ' + robuxProgress + ' / ' + r.req + '</div>' +
+                          '<div style="background:#333;border-radius:4px;height:6px;margin:4px 0;"><div style="background:#76ff03;width:' + pct + '%;height:6px;border-radius:4px;"></div></div>' +
+                          '<div style="color:#ff9800; font-size:12px;">Brakuje: ' + needed + ' 🧠</div>';
         } else if (!claimed && i > currentTarget) {
             // Następne postacie - pokaż wymagania
             progressHtml = '<div style="color:#666; font-size:11px; margin-top:5px;">🔒 Odblokuj poprzednie</div>';
@@ -172,9 +176,15 @@ function renderRobuxRoad() {
             progressHtml +
             '</div>';
 
-        // Przycisk / status - zawsze można wypróbować każdą postać
+        // Przycisk — Odbierz gdy uzbierano, inaczej Wypróbuj
         var btnHtml = '';
-        btnHtml = '<button class="char-card-btn" style="background:linear-gradient(180deg,#9c27b0,#7b1fa2)" onclick="showTryCharPanel(\'' + charName + '\')">🎮 WYPRÓBUJ</button>';
+        if (claimed) {
+            btnHtml = '<button class="char-card-btn" style="background:#333;color:#888;cursor:default;" disabled>✔ Odebrano</button>';
+        } else if (unlocked) {
+            btnHtml = '<button class="char-card-btn" style="background:linear-gradient(180deg,#00c853,#1b5e20);font-size:16px;animation:pulse 1s infinite alternate;" onclick="claimRobuxReward(' + i + ')">🎁 ODBIERZ!</button>';
+        } else {
+            btnHtml = '<button class="char-card-btn" style="background:linear-gradient(180deg,#9c27b0,#7b1fa2)" onclick="showTryCharPanel(\'' + charName + '\')">🎮 WYPRÓBUJ</button>';
+        }
 
         card.innerHTML = rarityHeader + content + btnHtml;
         list.appendChild(card);
@@ -359,7 +369,7 @@ function drawPreviewCharacter() {
     else if (previewChar.skinFamily === 'frostik') drawLobbyFrostik(ctx, px, py, currentSkin);
     else if (previewChar.skinFamily === 'cieniak') drawLobbyCieniak(ctx, px, py, currentSkin);
     else if (previewChar.skinFamily === 'magmak') drawLobbyMagmak(ctx, px, py, currentSkin);
-    else if (previewChar.skinFamily === 'ultrazombi') drawLobbyDuszek(ctx, px, py, currentSkin);
+    else if (previewChar.skinFamily === 'ultrazombi') drawLobbyUltraZombi(ctx, px, py, currentSkin);
     else if (previewChar.skinFamily === 'zlotek') drawLobbyZlotek(ctx, px, py, currentSkin);
     else if (previewChar.skinFamily === 'toksyk') drawLobbyToksyk(ctx, px, py, currentSkin);
     else if (previewChar.skinFamily === 'duszek') drawLobbyDuszek(ctx, px, py, currentSkin);
@@ -430,7 +440,7 @@ function drawLobbyCharacter() {
     else if (lobbyChar.skinFamily === 'frostik') drawLobbyFrostik(ctx, px, py, currentSkin);
     else if (lobbyChar.skinFamily === 'cieniak') drawLobbyCieniak(ctx, px, py, currentSkin);
     else if (lobbyChar.skinFamily === 'magmak') drawLobbyMagmak(ctx, px, py, currentSkin);
-    else if (lobbyChar.skinFamily === 'ultrazombi') drawLobbyDuszek(ctx, px, py, currentSkin);
+    else if (lobbyChar.skinFamily === 'ultrazombi') drawLobbyUltraZombi(ctx, px, py, currentSkin);
     else if (lobbyChar.skinFamily === 'zlotek') drawLobbyZlotek(ctx, px, py, currentSkin);
     else if (lobbyChar.skinFamily === 'toksyk') drawLobbyToksyk(ctx, px, py, currentSkin);
     else if (lobbyChar.skinFamily === 'duszek') drawLobbyDuszek(ctx, px, py, currentSkin);

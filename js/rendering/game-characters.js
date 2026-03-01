@@ -1,5 +1,52 @@
 // Game character rendering functions (in-game)
 
+// === EFEKTY WYJŚCIA Z GROBU (arena) ===
+function drawGraveDirtInGame(px, py) {
+    var dirtSpots = [
+        { x: -9,  y: -26, rx: 4.5, ry: 2.5, a: -0.3 },
+        { x:  8,  y: -16, rx: 3.5, ry: 2,   a:  0.5 },
+        { x: -4,  y:  -1, rx: 5,   ry: 3.5, a:  0.1 },
+        { x: 12,  y:   5, rx: 3.5, ry: 2.5, a: -0.2 },
+        { x: -13, y:  -7, rx: 2.5, ry: 1.5, a:  0.4 },
+        { x:  2,  y:  -9, rx: 2.5, ry: 1.5, a: -0.1 },
+        { x: -7,  y:  12, rx: 4,   ry: 2.5, a:  0.2 },
+        { x: -15, y:   8, rx: 3.5, ry: 2,   a:  0.3 },
+    ];
+    ctx.fillStyle = 'rgba(90, 52, 18, 0.72)';
+    for (var i = 0; i < dirtSpots.length; i++) {
+        var d = dirtSpots[i];
+        ctx.beginPath();
+        ctx.ellipse(px + d.x, py + d.y, d.rx, d.ry, d.a, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    // Kępki trawy przy nogach
+    ctx.fillStyle = 'rgba(80, 48, 15, 0.85)';
+    ctx.fillRect(px - 18, py + 26, 36, 4);
+    var grassTufts = [-14, -7, 0, 7, 13];
+    for (var g = 0; g < grassTufts.length; g++) {
+        ctx.fillStyle = g % 2 === 0 ? '#3a6b20' : '#2d5519';
+        ctx.beginPath();
+        ctx.moveTo(px + grassTufts[g],     py + 26);
+        ctx.lineTo(px + grassTufts[g] - 2, py + 19);
+        ctx.lineTo(px + grassTufts[g] + 2, py + 21);
+        ctx.lineTo(px + grassTufts[g] + 4, py + 26);
+        ctx.closePath();
+        ctx.fill();
+    }
+    // Robak
+    ctx.fillStyle = '#c8b46a';
+    ctx.beginPath();
+    ctx.arc(px - 4, py + 5, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(px - 7, py + 7, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Strzępy
+    ctx.fillStyle = 'rgba(25, 15, 5, 0.5)';
+    ctx.fillRect(px - 16, py + 8, 4, 2.5);
+    ctx.fillRect(px + 10, py + 12, 3.5, 2);
+}
+
 function drawNoobekInGame(px, py, skinId, charName) {
     // Kolory dla różnych skinów
     var colors = {
@@ -115,6 +162,7 @@ function drawNoobekInGame(px, py, skinId, charName) {
         ctx.arc(px, py - 17, 8, 0.1, Math.PI - 0.1);
         ctx.stroke();
     }
+    drawGraveDirtInGame(px, py);
 }
 
 function drawBlazerInGame(px, py, skinId) {
@@ -164,12 +212,19 @@ function drawBlazerInGame(px, py, skinId) {
     ctx.arc(px - 6, py - 29, 3, 0, Math.PI*2);
     ctx.arc(px + 8, py - 29, 3, 0, Math.PI*2);
     ctx.fill();
-    // Uśmiech
+    // Grymasa zombie
     ctx.strokeStyle = c.smile;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(px, py - 22, 7, 0.2, Math.PI - 0.2);
+    ctx.arc(px, py - 22, 7, 0.2, Math.PI - 0.2, true);
     ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,0.45)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(px - 7, py - 30, 6, 0, Math.PI * 2);
+    ctx.arc(px + 7, py - 30, 6, 0, Math.PI * 2);
+    ctx.stroke();
+    drawGraveDirtInGame(px, py);
 }
 
 function drawFrostikInGame(px, py, skinId) {
@@ -217,12 +272,27 @@ function drawFrostikInGame(px, py, skinId) {
     ctx.arc(px - 6, py - 29, 3, 0, Math.PI*2);
     ctx.arc(px + 8, py - 29, 3, 0, Math.PI*2);
     ctx.fill();
-    // Uśmiech - zmarznięty
+    // Grymasa zombie (zamrożona)
     ctx.strokeStyle = c.smile;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(px, py - 22, 7, 0.2, Math.PI - 0.2);
+    ctx.arc(px, py - 22, 7, 0.2, Math.PI - 0.2, true);
     ctx.stroke();
+    ctx.strokeStyle = 'rgba(150, 220, 255, 0.8)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(px - 5, py - 14); ctx.lineTo(px - 11, py - 5); ctx.lineTo(px - 7, py);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(px + 4, py - 9); ctx.lineTo(px + 8, py - 3);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(px - 7, py - 30, 6, 0, Math.PI * 2);
+    ctx.arc(px + 7, py - 30, 6, 0, Math.PI * 2);
+    ctx.stroke();
+    drawGraveDirtInGame(px, py);
 }
 
 function drawCieniakInGame(px, py, skinId) {
@@ -264,6 +334,7 @@ function drawCieniakInGame(px, py, skinId) {
     ctx.arc(px + 6, py - 22, 3, 0, Math.PI * 2);
     ctx.fill();
     ctx.shadowBlur = 0;
+    drawGraveDirtInGame(px, py);
     
     // Ręce - czarne macki
     ctx.strokeStyle = '#000000';
@@ -355,17 +426,23 @@ function drawMagmakInGame(px, py, skinId) {
     ctx.arc(px + 7, py - 4, 2, 0, Math.PI * 2);
     ctx.fill();
     
-    // Uśmiech
+    // Grymasa wulkaniczna
     ctx.strokeStyle = '#222';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(px, py + 3, 6, 0.2, Math.PI - 0.2);
+    ctx.arc(px, py + 3, 6, 0.2, Math.PI - 0.2, true);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,100,0,0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(px - 7, py - 18); ctx.lineTo(px - 3, py - 9); ctx.lineTo(px - 9, py - 3);
     ctx.stroke();
     
     // Ręce (kamienne)
     ctx.fillStyle = c.mountainDark;
     ctx.fillRect(px - 26, py - 8, 6, 14);
     ctx.fillRect(px + 20, py - 8, 6, 14);
+    drawGraveDirtInGame(px, py);
 }
 
 function drawToksykInGame(px, py, skinId) {
@@ -458,12 +535,13 @@ function drawToksykInGame(px, py, skinId) {
     ctx.arc(px + 5, py - 13 + bounce, 2.5, 0, Math.PI * 2);
     ctx.fill();
     
-    // Uśmiech
+    // Grymasa toksyczna
     ctx.strokeStyle = c.pupil;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.arc(px, py - 8 + bounce, 5, 0.2, Math.PI - 0.2);
+    ctx.arc(px, py - 8 + bounce, 5, 0.2, Math.PI - 0.2, true);
     ctx.stroke();
+    drawGraveDirtInGame(px, py);
 }
 
 function drawDuszekInGame(px, py, skinId) {
@@ -534,12 +612,13 @@ function drawDuszekInGame(px, py, skinId) {
     ctx.arc(px + 7, py - 11 + floatY, 2.5, 0, Math.PI * 2);
     ctx.fill();
     
-    // Uśmiech
+    // Grymasa ducha zombie
     ctx.strokeStyle = c.eye;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(px, py - 2 + floatY, 8, 0.2, Math.PI - 0.2);
+    ctx.arc(px, py - 2 + floatY, 8, 0.2, Math.PI - 0.2, true);
     ctx.stroke();
+    drawGraveDirtInGame(px, py);
     
     // Ręce-widma
     ctx.strokeStyle = c.body;
@@ -627,4 +706,114 @@ function drawZlotekInGame(px, py, skinId) {
     ctx.beginPath();
     ctx.ellipse(px + 5, py + 12, 8, 4, 0, 0, Math.PI * 2);
     ctx.fill();
+    // Martwe oczy (X)
+    ctx.strokeStyle = 'rgba(80,60,0,0.8)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(px - 7, py - 21); ctx.lineTo(px - 2, py - 15);
+    ctx.moveTo(px - 2, py - 21); ctx.lineTo(px - 7, py - 15);
+    ctx.moveTo(px + 2, py - 21); ctx.lineTo(px + 7, py - 15);
+    ctx.moveTo(px + 7, py - 21); ctx.lineTo(px + 2, py - 15);
+    ctx.stroke();
+    // Rysa na koronie
+    ctx.strokeStyle = 'rgba(120, 80, 0, 0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(px - 1, py - 46); ctx.lineTo(px + 2, py - 37); ctx.lineTo(px - 1, py - 32);
+    ctx.stroke();
+    drawGraveDirtInGame(px, py);
+}
+
+// === ULTRA ZOMBI in-game ===
+function drawUltraZombiInGame(px, py, skinId) {
+    var time = Date.now() / 1000;
+    var pulse = Math.sin(time * 2) * 3;
+
+    var grd = ctx.createRadialGradient(px, py - 10, 5, px, py - 10, 50 + pulse);
+    grd.addColorStop(0, 'rgba(233, 30, 99, 0.4)');
+    grd.addColorStop(1, 'rgba(233, 30, 99, 0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(px, py - 10, 50 + pulse, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ad1457';
+    ctx.fillRect(px - 15, py + 8,  11, 20);
+    ctx.fillRect(px + 4,  py + 8,  11, 20);
+    ctx.fillStyle = '#880e4f';
+    ctx.fillRect(px - 16, py + 26, 13, 5);
+    ctx.fillRect(px + 3,  py + 26, 13, 5);
+
+    ctx.fillStyle = '#e91e63';
+    ctx.fillRect(px - 20, py - 15, 40, 25);
+    ctx.strokeStyle = '#880e4f';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(px - 7, py - 12); ctx.lineTo(px - 2, py - 4); ctx.lineTo(px - 7, py + 3);
+    ctx.stroke();
+    ctx.fillStyle = '#880e4f';
+    ctx.beginPath();
+    ctx.ellipse(px + 6, py - 2, 7, 5, 0.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#c2185b';
+    ctx.fillRect(px - 30, py - 13, 10, 22);
+    ctx.fillRect(px + 20, py - 13, 10, 22);
+    ctx.fillStyle = '#ad1457';
+    ctx.fillRect(px - 32, py + 7, 12, 8);
+    ctx.fillRect(px + 20, py + 7, 12, 8);
+
+    ctx.fillStyle = '#f06292';
+    ctx.fillRect(px - 20, py - 40, 40, 27);
+    ctx.fillStyle = '#880e4f';
+    ctx.fillRect(px - 12, py - 38, 10, 4);
+
+    ctx.fillStyle = '#ad1457';
+    for (var sp = -2; sp <= 2; sp++) {
+        ctx.beginPath();
+        ctx.moveTo(px + sp * 8 - 3, py - 40);
+        ctx.lineTo(px + sp * 8,     py - 40 - 8 - Math.abs(sp) * 2 + pulse * 0.3);
+        ctx.lineTo(px + sp * 8 + 3, py - 40);
+        ctx.fill();
+    }
+
+    ctx.shadowColor = '#ffeb3b';
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = '#ffeb3b';
+    ctx.beginPath();
+    ctx.arc(px - 8, py - 27, 6, 0, Math.PI * 2);
+    ctx.arc(px + 8, py - 27, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ff0000';
+    ctx.beginPath();
+    ctx.arc(px - 8, py - 27, 3, 0, Math.PI * 2);
+    ctx.arc(px + 8, py - 27, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#1a0000';
+    ctx.beginPath();
+    ctx.moveTo(px - 14, py - 36); ctx.lineTo(px - 3, py - 34); ctx.lineTo(px - 3, py - 32); ctx.lineTo(px - 14, py - 33);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(px + 14, py - 36); ctx.lineTo(px + 3, py - 34); ctx.lineTo(px + 3, py - 32); ctx.lineTo(px + 14, py - 33);
+    ctx.fill();
+
+    ctx.fillStyle = '#1a0000';
+    ctx.beginPath();
+    ctx.moveTo(px - 12, py - 16);
+    ctx.quadraticCurveTo(px, py - 24, px + 12, py - 16);
+    ctx.lineTo(px + 12, py - 13);
+    ctx.quadraticCurveTo(px, py - 20, px - 12, py - 13);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#f5f5f5';
+    ctx.beginPath();
+    ctx.moveTo(px - 7, py - 16); ctx.lineTo(px - 4, py - 10); ctx.lineTo(px - 1, py - 16);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(px + 1, py - 16); ctx.lineTo(px + 4, py - 10); ctx.lineTo(px + 7, py - 16);
+    ctx.fill();
+
+    drawGraveDirtInGame(px, py);
 }

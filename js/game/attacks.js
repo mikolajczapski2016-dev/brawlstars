@@ -9,6 +9,57 @@ function updateAttacks() {
     for (var i = attacks.length - 1; i >= 0; i--) {
         var a = attacks[i];
 
+        // RÓŻOWA CHMURA (UltraZombi) - tworzy strefę trucizny
+        if (a.type === 'pinkcloud') {
+            a.dist += 8;
+            a.life--;
+
+            var ax = a.x + Math.cos(a.angle) * a.dist;
+            var ay = a.y + Math.sin(a.angle) * a.dist;
+
+            // Rysuj chmurę
+            for (var p = 0; p < 2; p++) {
+                particles.push({
+                    x: ax + (Math.random()-0.5) * 30,
+                    y: ay + (Math.random()-0.5) * 30,
+                    vx: (Math.random()-0.5) * 2,
+                    vy: (Math.random()-0.5) * 2,
+                    life: 20,
+                    color: '#e91e63'
+                });
+            }
+
+            // Sprawdź kolizję z wrogami
+            for (var j = 0; j < enemies.length; j++) {
+                var e = enemies[j];
+                var dx = ax - e.x;
+                var dy = ay - e.y;
+                if (Math.sqrt(dx*dx+dy*dy) < 35) {
+                    e.hp -= a.damage;
+                    player.superCharge = Math.min(100, player.superCharge + 10);
+                    if (player.hasHypercharge) player.hyperchargeCharge = Math.min(100, player.hyperchargeCharge + 10);
+                    damageTexts.push({ x: e.x, y: e.y - 30, text: '-' + a.damage + ' ☠️', life: 30, color: '#e91e63' });
+                }
+            }
+
+            // Usuń gdy dotrze do końca zasięgu
+            if (a.life <= 0 || a.dist > a.maxDist) {
+                // Efekt zanikania chmury
+                for (var p = 0; p < 15; p++) {
+                    particles.push({
+                        x: ax + (Math.random()-0.5) * 40,
+                        y: ay + (Math.random()-0.5) * 40,
+                        vx: (Math.random()-0.5) * 3,
+                        vy: -Math.random() * 2,
+                        life: 25,
+                        color: '#f48fb1'
+                    });
+                }
+                attacks.splice(i, 1);
+            }
+            continue;
+        }
+
         // LECĄCA CZARNA DZIURA (super Cieniaka)
         if (a.type === 'flyingblackhole') {
             a.x += a.vx;
@@ -142,6 +193,7 @@ function updateAttacks() {
                         var dmg = Math.floor(a.damage * (1 - dist/60));
                         e.hp -= dmg;
                         player.superCharge = Math.min(100, player.superCharge + 10);
+                    if (player.hasHypercharge) player.hyperchargeCharge = Math.min(100, player.hyperchargeCharge + 10);
                         damageTexts.push({ x: e.x, y: e.y - 30, text: '-' + dmg + ' 💥', life: 30, color: '#ff5722' });
                     }
                 }
@@ -180,6 +232,7 @@ function updateAttacks() {
                     if (Math.sqrt(adx*adx + ady*ady) < (a.size || 10) + 25) {
                         acc.hp -= a.damage;
                         player.superCharge = Math.min(100, player.superCharge + 10);
+                    if (player.hasHypercharge) player.hyperchargeCharge = Math.min(100, player.hyperchargeCharge + 10);
                         damageTexts.push({ x: acc.x, y: acc.y - 30, text: '-' + a.damage + ' ⚡', life: 30, color: '#4fc3f7' });
                         if (acc.hp <= 0) {
                             acc.active = false;
@@ -203,9 +256,13 @@ function updateAttacks() {
                 var dy = ay - e.y;
                 var dist = Math.sqrt(dx*dx+dy*dy);
                 if (dist < a.size + 40) {
-                    e.hp -= a.damage;
+                    var finalDmg = e.hasArmor ? Math.max(1, Math.floor(a.damage * 0.4)) : a.damage;
+                    e.hp -= finalDmg;
                     player.superCharge = Math.min(100, player.superCharge + 15);
-                    damageTexts.push({ x: e.x, y: e.y - 30, text: '-' + a.damage, life: 30, color: '#ff0000' });
+                    if (player.hasHypercharge) player.hyperchargeCharge = Math.min(100, player.hyperchargeCharge + 15);
+                    var dmgTxt = e.hasArmor ? ('\u2694 ' + finalDmg) : ('-' + finalDmg);
+                    var dmgCol = e.hasArmor ? '#bdbdbd' : '#ff0000';
+                    damageTexts.push({ x: e.x, y: e.y - 30, text: dmgTxt, life: 30, color: dmgCol });
                     hitEnemy = true;
                     break;
                 }
@@ -224,6 +281,7 @@ function updateAttacks() {
                     if (Math.sqrt(dx*dx+dy*dy) < a.size + 20) {
                         e.hp -= a.damage;
                         player.superCharge = Math.min(100, player.superCharge + 15);
+                    if (player.hasHypercharge) player.hyperchargeCharge = Math.min(100, player.hyperchargeCharge + 15);
                         damageTexts.push({ x: e.x, y: e.y - 30, text: '-' + a.damage, life: 30, color: '#ff0000' });
                         attacks.splice(i, 1);
                         break;
