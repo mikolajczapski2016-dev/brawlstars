@@ -219,6 +219,22 @@ function renderAdminPanel() {
         '<div style="margin-top:10px;"><button onclick="resetGame()" style="background:#ff5555;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;">🔄 RESETUJ GRĘ</button></div>' +
         '</div>' +
         '<div style="text-align:left;margin-bottom:20px;">' +
+        '<h3 style="color:#fff;margin-bottom:10px;">🎮 Poziom areny:</h3>' +
+        '<div style="color:#aaa;font-size:13px;margin-bottom:8px;">Aktualny poziom: <span id="adminLevelDisplay" style="color:#ffeb3b;font-weight:bold;">' + arenaLevel + '</span></div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">' +
+        '<button onclick="adminChangeLevel(-1)"  style="background:#37474f;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:bold;">-1</button>' +
+        '<button onclick="adminChangeLevel(-5)"  style="background:#37474f;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:bold;">-5</button>' +
+        '<button onclick="adminChangeLevel(-10)" style="background:#37474f;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:bold;">-10</button>' +
+        '<button onclick="adminChangeLevel(1)"   style="background:#1565c0;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:bold;">+1</button>' +
+        '<button onclick="adminChangeLevel(5)"   style="background:#1565c0;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:bold;">+5</button>' +
+        '<button onclick="adminChangeLevel(10)"  style="background:#1565c0;color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:bold;">+10</button>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;align-items:center;">' +
+        '<input type="number" id="customLevelInput" placeholder="Poziom" min="1" max="100" value="' + arenaLevel + '" style="padding:8px;border-radius:5px;border:1px solid #555;background:#222;color:#fff;width:90px;">' +
+        '<button onclick="adminSetLevel(parseInt(document.getElementById(\'customLevelInput\').value)||1)" style="background:#0d47a1;color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:bold;">USTAW</button>' +
+        '</div>' +
+        '</div>' +
+        '<div style="text-align:left;margin-bottom:20px;">' +
         '<h3 style="color:#76ff03;margin-bottom:10px;">🧠 Aleja Mózgów:</h3>' +
         '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;">' +
         '<button onclick="adminAddRobux(1)"  style="background:#1b5e20;color:#76ff03;border:2px solid #76ff03;padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:bold;">+1 🧠</button>' +
@@ -265,6 +281,23 @@ function deleteCreatorCode(index) {
         saveCreatorCodes();
         renderAdminPanel();
     }
+}
+
+function adminChangeLevel(delta) {
+    arenaLevel = Math.max(1, Math.min(100, arenaLevel + delta));
+    localStorage.setItem('arenaLevel', arenaLevel);
+    updateArenaLevelDisplay();
+    var disp = document.getElementById('adminLevelDisplay');
+    if (disp) disp.textContent = arenaLevel;
+}
+
+function adminSetLevel(level) {
+    if (!level || isNaN(level)) return;
+    arenaLevel = Math.max(1, Math.min(100, level));
+    localStorage.setItem('arenaLevel', arenaLevel);
+    updateArenaLevelDisplay();
+    var disp = document.getElementById('adminLevelDisplay');
+    if (disp) disp.textContent = arenaLevel;
 }
 
 function adminAddRobux(amount) {

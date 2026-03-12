@@ -11,7 +11,6 @@ var player = {
     speed: 3,
     hp: 100, maxHp: 100,
     superCharge: 0,
-    hyperchargeCharge: 0,
     isSupering: false,
     superReady: false,
     superX: 0, superY: 0, superTargetX: 0, superTargetY: 0, superProgress: 0,
@@ -381,14 +380,13 @@ function startGame() {
     player.y = 400;
     player.hp = player.maxHp;
     player.superCharge = 0;
-    player.hyperchargeCharge = 0;
     player.isSupering = false;
     player.superReady = false;
     player.attackCooldown = 0;
     player.skin = currentSkin;
     player.character = selectedCharacter;
     player.blackHole = null;
-    player.hasHypercharge = !!(hyperchargedCharacters && hyperchargedCharacters[selectedCharacter]);
+
     attacks = [];
     particles = [];
     damageTexts = [];

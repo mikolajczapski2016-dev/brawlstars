@@ -1299,8 +1299,7 @@ function drawUI() {
     // Super bar
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.fillRect(20, canvas.height - 80, 204, 20);
-    var superColor = player.hasHypercharge ? (player.superCharge >= 100 ? '#bf00ff' : '#9c00cc') : (player.superCharge >= 100 ? '#ffff00' : '#ff9800');
-    ctx.fillStyle = superColor;
+    ctx.fillStyle = player.superCharge >= 100 ? '#ffff00' : '#ff9800';
     ctx.fillRect(22, canvas.height - 78, 200 * (player.superCharge / 100), 16);
     if (player.hasHypercharge && player.superCharge >= 100) {
         var t = Date.now() / 1000;
@@ -1313,16 +1312,7 @@ function drawUI() {
     ctx.fillText(superLabel, 122, canvas.height - 67);
     ctx.shadowBlur = 0;
 
-    // Pasek Hypercharge (pod super barem)
-    if (player.hasHypercharge) {
-        ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        ctx.fillRect(20, canvas.height - 56, 204, 14);
-        var hc = player.hyperchargeCharge / 100;
-        var hcColor = player.hyperchargeCharge >= 100 ? '#bf00ff' : '#7b00cc';
-        if (player.hyperchargeCharge >= 100) {
-            ctx.shadowColor = '#bf00ff';
-            ctx.shadowBlur = 8 + Math.sin(Date.now()/200) * 4;
-        }
+
         ctx.fillStyle = hcColor;
         ctx.fillRect(22, canvas.height - 54, 200 * hc, 10);
         ctx.shadowBlur = 0;

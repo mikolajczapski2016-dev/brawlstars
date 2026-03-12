@@ -37,7 +37,6 @@ function updateAttacks() {
                 if (Math.sqrt(dx*dx+dy*dy) < 35) {
                     e.hp -= a.damage;
                     player.superCharge = Math.min(100, player.superCharge + 10);
-                    if (player.hasHypercharge) player.hyperchargeCharge = Math.min(100, player.hyperchargeCharge + 10);
                     damageTexts.push({ x: e.x, y: e.y - 30, text: '-' + a.damage + ' ☠️', life: 30, color: '#e91e63' });
                 }
             }
@@ -193,7 +192,6 @@ function updateAttacks() {
                         var dmg = Math.floor(a.damage * (1 - dist/60));
                         e.hp -= dmg;
                         player.superCharge = Math.min(100, player.superCharge + 10);
-                    if (player.hasHypercharge) player.hyperchargeCharge = Math.min(100, player.hyperchargeCharge + 10);
                         damageTexts.push({ x: e.x, y: e.y - 30, text: '-' + dmg + ' 💥', life: 30, color: '#ff5722' });
                     }
                 }
@@ -232,7 +230,6 @@ function updateAttacks() {
                     if (Math.sqrt(adx*adx + ady*ady) < (a.size || 10) + 25) {
                         acc.hp -= a.damage;
                         player.superCharge = Math.min(100, player.superCharge + 10);
-                    if (player.hasHypercharge) player.hyperchargeCharge = Math.min(100, player.hyperchargeCharge + 10);
                         damageTexts.push({ x: acc.x, y: acc.y - 30, text: '-' + a.damage + ' ⚡', life: 30, color: '#4fc3f7' });
                         if (acc.hp <= 0) {
                             acc.active = false;
@@ -259,7 +256,6 @@ function updateAttacks() {
                     var finalDmg = e.hasArmor ? Math.max(1, Math.floor(a.damage * 0.4)) : a.damage;
                     e.hp -= finalDmg;
                     player.superCharge = Math.min(100, player.superCharge + 15);
-                    if (player.hasHypercharge) player.hyperchargeCharge = Math.min(100, player.hyperchargeCharge + 15);
                     var dmgTxt = e.hasArmor ? ('\u2694 ' + finalDmg) : ('-' + finalDmg);
                     var dmgCol = e.hasArmor ? '#bdbdbd' : '#ff0000';
                     damageTexts.push({ x: e.x, y: e.y - 30, text: dmgTxt, life: 30, color: dmgCol });
@@ -281,7 +277,6 @@ function updateAttacks() {
                     if (Math.sqrt(dx*dx+dy*dy) < a.size + 20) {
                         e.hp -= a.damage;
                         player.superCharge = Math.min(100, player.superCharge + 15);
-                    if (player.hasHypercharge) player.hyperchargeCharge = Math.min(100, player.hyperchargeCharge + 15);
                         damageTexts.push({ x: e.x, y: e.y - 30, text: '-' + a.damage, life: 30, color: '#ff0000' });
                         attacks.splice(i, 1);
                         break;

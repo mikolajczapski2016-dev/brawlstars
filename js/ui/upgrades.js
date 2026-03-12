@@ -2,7 +2,6 @@
 
 // State variables
 var characterUpgrades = {};
-var hyperchargedCharacters = {}; // { 'Zombie': true, 'Blazer': true, ... }
 
 // ========== UPGRADE FUNCTIONS ==========
 
@@ -30,7 +29,6 @@ function loadCharacterUpgrades(charName) {
         }
     }
     updateUpgradeBtns();
-    checkHyperchargeBtn();
 }
 
 // Zapisz aktualne ulepszenia z UI do postaci
@@ -77,51 +75,6 @@ function updateUpgradeBtns() {
             btn.disabled = false;
         }
     }
-    checkHyperchargeBtn();
-}
-
-// Sprawdź czy postać jest na maksa i pokaż przycisk hypercharge
-function checkHyperchargeBtn() {
-    var charName = previewCharacter || selectedCharacter;
-    var section = document.getElementById('hyperchargeSection');
-    var btn = document.getElementById('hyperchargeBtn');
-    var status = document.getElementById('hyperchargeStatus');
-    if (!section) return;
-
-    // Sprawdź czy wszystkie 3 statystyki są na poziomie 10
-    var bars = document.querySelectorAll('.upgrade-bar');
-    var allMax = bars.length >= 3;
-    for (var i = 0; i < bars.length; i++) {
-        if (bars[i].querySelectorAll('.dot.filled').length < 10) { allMax = false; break; }
-    }
-
-    if (allMax) {
-        section.style.display = 'block';
-        if (hyperchargedCharacters[charName]) {
-            btn.style.display = 'none';
-            status.style.display = 'block';
-        } else {
-            btn.style.display = 'block';
-            status.style.display = 'none';
-        }
-    } else {
-        section.style.display = 'none';
-    }
-}
-
-// Kup hypercharge dla aktualnej postaci
-function buyHypercharge() {
-    var charName = previewCharacter || selectedCharacter;
-    if (hyperchargedCharacters[charName]) return;
-    if (coins < 5000) {
-        alert('Za mało monet! Potrzebujesz 5000 💰');
-        return;
-    }
-    coins -= 5000;
-    updateCoins();
-    hyperchargedCharacters[charName] = true;
-    saveGame();
-    checkHyperchargeBtn();
 }
 
 // Kup ulepszenie
