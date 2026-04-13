@@ -444,8 +444,38 @@ function updateEnemies() {
             }
         }
 
-        // Atak - łucznicy strzelają z daleka, reszta melee
-        if (e.hasBow) {
+        // Atak - czarodzieje rzucają pioruny, łucznicy strzelają z łuku, reszta melee
+        if (e.isWizard) {
+            // Czarodziej - rzuca piorunami z dystansu
+            if (dist < 400) {
+                e.attackCooldown--;
+                if (e.attackCooldown <= 0) {
+                    var angle = Math.atan2(player.y - e.y, player.x - e.x);
+                    attacks.push({
+                        x: e.x,
+                        y: e.y - 20,
+                        angle: angle,
+                        dist: 0,
+                        damage: 15,
+                        life: 40,
+                        type: 'lightning',
+                        speed: 15
+                    });
+                    // Efekt cząsteczek pioruna
+                    for (var p = 0; p < 8; p++) {
+                        particles.push({
+                            x: e.x,
+                            y: e.y - 20,
+                            vx: (Math.random() - 0.5) * 6,
+                            vy: (Math.random() - 0.5) * 6,
+                            life: 15,
+                            color: '#e040fb'
+                        });
+                    }
+                    e.attackCooldown = 70;
+                }
+            }
+        } else if (e.hasBow) {
             // Zatrzymaj się i strzelaj z dystansu
             if (dist < 350 && dist > 100) {
                 // Zachowaj dystans - stań w miejscu
@@ -535,13 +565,46 @@ function updateEnemies() {
             e.x = newEX;
             e.y = newEY;
 
-            // Atak
-            if (dist < 65) {
-                e.attackCooldown--;
-                if (e.attackCooldown <= 0) {
-                    player.hp -= 12;
-                    damageTexts.push({ x: player.x, y: player.y - 30, text: '-12', life: 30, color: '#ff4444' });
-                    e.attackCooldown = 40;
+            // Atak - czarodzieje rzucają pioruny, reszta melee
+            if (e.isWizard) {
+                // Czarodziej - rzuca piorunami z dystansu
+                if (dist < 400) {
+                    e.attackCooldown--;
+                    if (e.attackCooldown <= 0) {
+                        var angle = Math.atan2(player.y - e.y, player.x - e.x);
+                        attacks.push({
+                            x: e.x,
+                            y: e.y - 20,
+                            angle: angle,
+                            dist: 0,
+                            damage: 15,
+                            life: 40,
+                            type: 'lightning',
+                            speed: 15
+                        });
+                        // Efekt cząsteczek pioruna
+                        for (var p = 0; p < 8; p++) {
+                            particles.push({
+                                x: e.x,
+                                y: e.y - 20,
+                                vx: (Math.random() - 0.5) * 6,
+                                vy: (Math.random() - 0.5) * 6,
+                                life: 15,
+                                color: '#e040fb'
+                            });
+                        }
+                        e.attackCooldown = 70;
+                    }
+                }
+            } else {
+                // Melee atak
+                if (dist < 65) {
+                    e.attackCooldown--;
+                    if (e.attackCooldown <= 0) {
+                        player.hp -= 12;
+                        damageTexts.push({ x: player.x, y: player.y - 30, text: '-12', life: 30, color: '#ff4444' });
+                        e.attackCooldown = 40;
+                    }
                 }
             }
         }

@@ -1313,6 +1313,10 @@ function drawUI() {
     ctx.shadowBlur = 0;
 
 
+    // Hypercharge bar (jeśli aktywny)
+    if (player.hyperchargeCharge) {
+        var hc = player.hyperchargeCharge / 100;
+        var hcColor = '#bf00ff';
         ctx.fillStyle = hcColor;
         ctx.fillRect(22, canvas.height - 54, 200 * hc, 10);
         ctx.shadowBlur = 0;

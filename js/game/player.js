@@ -418,8 +418,8 @@ function updatePlayer() {
             return;
         }
 
-        // Przejście na wieżę (gdy brak wrogów)
-        if (castleFloor === 0 && castleEnemies.length === 0 && player.y < 100 && (keys['w'] || keys['arrowup'])) {
+        // Przejście na wieżę
+        if (castleFloor === 0 && player.y < 100 && (keys['w'] || keys['arrowup'])) {
             castleFloor = 1;
             player.y = canvas.height - 150;
             return;

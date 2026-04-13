@@ -95,6 +95,47 @@ function updateAttacks() {
             continue;
         }
 
+        // PIÓRUN CZARODZIEJA
+        if (a.type === 'lightning') {
+            a.dist += a.speed || 15;
+            a.life--;
+            
+            var ax = a.x + Math.cos(a.angle) * a.dist;
+            var ay = a.y + Math.sin(a.angle) * a.dist;
+            
+            // Efekt pioruna - żółte/fioletowe cząsteczki
+            for (var p = 0; p < 3; p++) {
+                particles.push({
+                    x: ax + (Math.random()-0.5) * 15,
+                    y: ay + (Math.random()-0.5) * 15,
+                    vx: (Math.random()-0.5) * 3,
+                    vy: (Math.random()-0.5) * 3,
+                    life: 10,
+                    color: Math.random() > 0.5 ? '#e040fb' : '#ffeb3b'
+                });
+            }
+            
+            // Sprawdź kolizję z graczem
+            var dx = ax - player.x;
+            var dy = ay - player.y;
+            if (Math.sqrt(dx*dx+dy*dy) < 30) {
+                player.hp -= a.damage;
+                damageTexts.push({ x: player.x, y: player.y - 30, text: '-' + a.damage + ' ⚡', life: 30, color: '#e040fb' });
+                // Efekt trafienia
+                for (var p = 0; p < 15; p++) {
+                    var ang = (p/15) * Math.PI * 2;
+                    particles.push({ x: player.x, y: player.y, vx: Math.cos(ang)*5, vy: Math.sin(ang)*5, life: 20, color: '#e040fb' });
+                }
+                attacks.splice(i, 1);
+                continue;
+            }
+            
+            if (a.life <= 0 || a.dist > 400) {
+                attacks.splice(i, 1);
+            }
+            continue;
+        }
+
         // Ognista kula bossa robota
         if (a.type === 'fireball') {
             a.dist += 8;
