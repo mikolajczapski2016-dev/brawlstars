@@ -82,29 +82,59 @@ function updateArenaLevelDisplay() {
 // === TYPY PRZECIWNIKÓW (przekierowanie do enemies.js) ===
 // createEnemyByLevel, createZombieNormal, createWizard, createBoss, spawnEnemy - patrz enemies.js
 
+// === ZNAJDŹ WOLNE MIEJSCE (nie w ścianie ani krzewie) ===
+function findFreePosition() {
+    for (var tries = 0; tries < 100; tries++) {
+        var fx = 50 + Math.random() * (ARENA_W - 100);
+        var fy = 50 + Math.random() * (ARENA_H - 100);
+        var valid = true;
+        for (var i = 0; i < walls.length; i++) {
+            if (rectsOverlap(fx - 20, fy - 25, 40, 50, walls[i].x, walls[i].y, walls[i].w, walls[i].h)) {
+                valid = false; break;
+            }
+        }
+        if (valid) {
+            for (var i = 0; i < bushes.length; i++) {
+                if (rectsOverlap(fx - 20, fy - 25, 40, 50, bushes[i].x, bushes[i].y, bushes[i].w, bushes[i].h)) {
+                    valid = false; break;
+                }
+            }
+        }
+        if (valid) return { x: fx, y: fy };
+    }
+    // Fallback - środek areny (zazwyczaj wolny)
+    return { x: ARENA_W / 2, y: ARENA_H / 2 };
+}
+
 function initArena() {
     // Ładuj poziom areny
     arenaLevel = getArenaLevel();
 
-    // Sciany
+    // Sciany - wyrównane do kratek 50x50
     walls = [
-        { x: 200, y: 150, w: 80, h: 80 },
-        { x: 500, y: 300, w: 120, h: 40 },
-        { x: 800, y: 200, w: 80, h: 80 },
-        { x: 350, y: 550, w: 40, h: 120 },
-        { x: 700, y: 500, w: 80, h: 80 },
-        { x: 950, y: 400, w: 60, h: 100 },
-        { x: 150, y: 400, w: 100, h: 40 },
-        { x: 600, y: 650, w: 80, h: 40 },
+        { x: 50, y: 50, w: 100, h: 100 },
+        { x: 200, y: 50, w: 100, h: 50 },
+        { x: 350, y: 50, w: 100, h: 100 },
+        { x: 500, y: 50, w: 50, h: 100 },
+        { x: 600, y: 50, w: 100, h: 100 },
+        { x: 700, y: 50, w: 50, h: 100 },
+        { x: 800, y: 50, w: 100, h: 50 },
+        { x: 950, y: 50, w: 100, h: 50 },
+        { x: 1100, y: 50, w: 50, h: 50 },
+        { x: 250, y: 300, w: 100, h: 50 },
+        { x: 400, y: 300, w: 50, h: 100 },
+        { x: 600, y: 300, w: 100, h: 50 },
+        { x: 750, y: 300, w: 100, h: 50 },
+        { x: 950, y: 600, w: 50, h: 50 },
     ];
-    // Krzewy
+    // Krzewy - wyrównane do kratek 50x50
     bushes = [
-        { x: 100, y: 300, w: 70, h: 70 },
-        { x: 450, y: 200, w: 60, h: 60 },
-        { x: 750, y: 600, w: 80, h: 60 },
-        { x: 300, y: 700, w: 70, h: 50 },
-        { x: 900, y: 150, w: 60, h: 70 },
-        { x: 550, y: 500, w: 50, h: 60 },
+        { x: 100, y: 300, w: 50, h: 50 },
+        { x: 450, y: 200, w: 50, h: 50 },
+        { x: 750, y: 600, w: 50, h: 50 },
+        { x: 300, y: 700, w: 50, h: 50 },
+        { x: 900, y: 150, w: 50, h: 50 },
+        { x: 550, y: 500, w: 50, h: 50 },
     ];
 
     // Przeciwnicy
@@ -133,7 +163,7 @@ function initArena() {
             y: ARENA_H / 2 - 150,
             w: 180,
             h: 300,
-            doorOpen: arenaLevel >= 100,
+            doorOpen: false,
             towerX: ARENA_W - 200,
             towerY: ARENA_H / 2 - 150 - 120,
             towerW: 80,
@@ -141,13 +171,13 @@ function initArena() {
             ladderY: ARENA_H / 2 + 80
         };
 
-        // Jeśli poziom 100, dodaj wrogów w zamku
-        if (arenaLevel >= 100) {
-            // Parter - czarodzieje
-            for (var j = 0; j < 4; j++) {
+        // Od poziomu 90 dodaj wrogów i króla w zamku
+        if (arenaLevel >= 90) {
+            // Parter - czarodzieje i zombie
+            var hpScale = 1 + (arenaLevel - 90) * 0.15;
+            for (var j = 0; j < 3; j++) {
                 var cx = castle.x + 30 + Math.random() * 120;
                 var cy = castle.y + 80 + Math.random() * 100;
-                var hpScale = 1 + (arenaLevel - 90) * 0.15;
                 castleEnemies.push({
                     x: cx, y: cy, w: 40, h: 50,
                     hp: 120 * hpScale,
@@ -162,7 +192,41 @@ function initArena() {
                     type: 'wizard'
                 });
             }
-            // Wieża - strażnicy
+            for (var j = 0; j < 3; j++) {
+                var cx = castle.x + 30 + Math.random() * 120;
+                var cy = castle.y + 80 + Math.random() * 100;
+                castleEnemies.push({
+                    x: cx, y: cy, w: 40, h: 50,
+                    hp: 100 * hpScale,
+                    maxHp: 100 * hpScale,
+                    speed: 2.0,
+                    attackCooldown: 0,
+                    dir: Math.random() * Math.PI * 2,
+                    changeDir: 0,
+                    color: '#aaa',
+                    hasBow: false,
+                    type: 'zombieNormal'
+                });
+            }
+            // Strażnicy też na parterze
+            for (var j = 0; j < 3; j++) {
+                var cx = castle.x + 30 + Math.random() * 120;
+                var cy = castle.y + 80 + Math.random() * 100;
+                castleEnemies.push({
+                    x: cx, y: cy, w: 40, h: 50,
+                    hp: 110 * hpScale,
+                    maxHp: 110 * hpScale,
+                    speed: 1.8,
+                    attackCooldown: 0,
+                    dir: Math.random() * Math.PI * 2,
+                    changeDir: 0,
+                    color: '#5d4037',
+                    hasBow: false,
+                    type: 'guard'
+                });
+            }
+
+            // Piętro 1 - strażnicy i zombie na wieży dolnej
             for (var k = 0; k < 3; k++) {
                 var tx = castle.towerX + 20 + Math.random() * 40;
                 var ty = castle.towerY + 30 + Math.random() * 50;
@@ -179,6 +243,24 @@ function initArena() {
                     type: 'guard'
                 });
             }
+            for (var k = 0; k < 4; k++) {
+                var tx = castle.towerX + 20 + Math.random() * 40;
+                var ty = castle.towerY + 30 + Math.random() * 50;
+                towerEnemies.push({
+                    x: tx, y: ty, w: 40, h: 50,
+                    hp: 90 * 1.5,
+                    maxHp: 90 * 1.5,
+                    speed: 2.2,
+                    attackCooldown: 0,
+                    dir: Math.random() * Math.PI * 2,
+                    changeDir: 0,
+                    color: '#aaa',
+                    hasBow: false,
+                    type: 'zombieNormal'
+                });
+            }
+
+            // Piętro 2 - komnata bossa
 
             // Boss na wieży - zresetuj dialog
             bossDialogShown = false;
@@ -198,14 +280,18 @@ function initArena() {
                 type: 'boss'
             };
 
-            // 4 akumulatory zasilające zbroję - rozstawione po arenie
-            bossHasArmor = true;
-            accumulators = [
-                { x: 200, y: 200, hp: 400, maxHp: 400, active: true, pulse: 0 },
-                { x: ARENA_W - 200, y: 200, hp: 400, maxHp: 400, active: true, pulse: 0 },
-                { x: 200, y: ARENA_H - 200, hp: 400, maxHp: 400, active: true, pulse: 0 },
-                { x: ARENA_W - 200, y: ARENA_H - 200, hp: 400, maxHp: 400, active: true, pulse: 0 }
-            ];
+            // 4 akumulatory zasilające zbroję tylko na poziomie 100
+            if (arenaLevel >= 100) {
+                bossHasArmor = true;
+                var roomCenterX = canvas.width / 2;
+                var roomCenterY = canvas.height / 2 - 50;
+                accumulators = [
+                    { x: roomCenterX - 220, y: roomCenterY - 120, hp: 400, maxHp: 400, active: true, pulse: 0 },
+                    { x: roomCenterX + 220, y: roomCenterY - 120, hp: 400, maxHp: 400, active: true, pulse: 0 },
+                    { x: roomCenterX - 220, y: roomCenterY + 120, hp: 400, maxHp: 400, active: true, pulse: 0 },
+                    { x: roomCenterX + 220, y: roomCenterY + 120, hp: 400, maxHp: 400, active: true, pulse: 0 }
+                ];
+            }
         }
     } else {
         castle = null;
@@ -347,6 +433,7 @@ function restartFromCredits() {
     coins = Math.max(0, coins);
     saveGame();
     document.getElementById('lobby').style.display = 'flex';
+    if (typeof updateLobbyCharacter3D === 'function') updateLobbyCharacter3D();
     drawLobbyCharacter();
     drawLobbyBackground();
 }
@@ -368,16 +455,28 @@ function startGame() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
+    // Inicjalizacja 3D
+    initArena3D();
+
     var hpLevel = getUpgradeLevel(0);
     var atkLevel = getUpgradeLevel(1);
     var spdLevel = getUpgradeLevel(2);
 
     player.maxHp = 100 + (hpLevel - 1) * 20;
-    player.attackDamage = 20 + (atkLevel - 1) * 5;
+    player.attackDamage = (adminSettings.playerDamage > 0) ? adminSettings.playerDamage : (20 + (atkLevel - 1) * 5);
     player.speed = 3 + (spdLevel - 1) * 0.4;
 
-    player.x = 400;
-    player.y = 400;
+    attacks = [];
+    particles = [];
+    damageTexts = [];
+    gameMode = 'arena';
+    gamePaused = false;
+    initArena();
+
+    // Ustaw gracza na wolnym miejscu (nie w ścianie!)
+    var spawnPos = findFreePosition();
+    player.x = spawnPos.x;
+    player.y = spawnPos.y;
     player.hp = player.maxHp;
     player.superCharge = 0;
     player.isSupering = false;
@@ -387,12 +486,6 @@ function startGame() {
     player.character = selectedCharacter;
     player.blackHole = null;
 
-    attacks = [];
-    particles = [];
-    damageTexts = [];
-    gameMode = 'arena';
-    gamePaused = false;
-    initArena();
     gameRunning = true;
     updateSuperBtn();
     gameLoop();
@@ -431,9 +524,12 @@ function backToLobby() {
     document.getElementById('lobby').style.display = 'flex';
     // Odśwież postać w lobby
     document.getElementById('selectedInfo').textContent = '🎮 Wybrana postać: ' + selectedCharacter;
+    if (typeof updateLobbyCharacter3D === 'function') updateLobbyCharacter3D();
     drawLobbyCharacter();
     drawLobbyBackground();
     saveGame();
+    // Wyczyść scenę 3D
+    disposeArena3D();
 }
 
 // === HANDLERY INPUT ===
@@ -502,8 +598,10 @@ function gameLoop() {
         updateTrophies();
         saveGame();
         castleBoss = null;
-        showCredits();
-        return;
+        if (arenaLevel >= 100) {
+            showCredits();
+            return;
+        }
     }
     // Boss zginął po fazie 2 (zbroja zniszczona wcześniej)
     if (castleBoss && castleBoss.hp <= 0 && bossPhase2Started) {
@@ -516,8 +614,19 @@ function gameLoop() {
         updateTrophies();
         saveGame();
         castleBoss = null;
-        showCredits();
-        return;
+        if (arenaLevel >= 100) {
+            showCredits();
+            return;
+        }
+    }
+
+    // === OTWÓRZ ZAMEK GDY WSZYSCY WRGOWIE NA ARENIE ZGINLI ===
+    if (castle && !castle.doorOpen && enemies.length === 0) {
+        castle.doorOpen = true;
+        // Efekt otwarcia drzwi
+        for (var p = 0; p < 20; p++) {
+            particles.push({ x: castle.x + castle.w/2, y: castle.y + castle.h, vx: (Math.random()-0.5)*4, vy: (Math.random()-0.5)*4, life: 30, color: '#ffd700' });
+        }
     }
 
     // === WARUNKI WYGRANEJ / PRZEGRANEJ ===
@@ -538,14 +647,14 @@ function gameLoop() {
 
         // Sprawdź czy arena jest wygrana
         if (enemies.length === 0) {
-            // Jeśli jest zamek i poziom >= 100, najpierw przejdź przez zamek
-            if (castle && arenaLevel >= 100) {
+            // Jeśli jest zamek i poziom >= 90, najpierw przejdź przez zamek
+            if (castle && arenaLevel >= 90) {
                 if (!inCastle || castleFloor === 0) {
-                    // Musisz wejść do zamku
-                } else if (castleFloor === 1 && castleEnemies.length > 0) {
-                    // Musisz pokonać wrogów na parterze
-                } else if (castleFloor === 1 && towerEnemies.length > 0) {
-                    // Musisz pokonać wrogów na wieży
+                    // Musisz wejść do zamku i pokonać wrogów na parterze
+                } else if (castleFloor === 1) {
+                    // Musisz pokonać wrogów na piętrze 1 i wejść na piętro 2
+                } else if (castleFloor === 2 && castleBoss) {
+                    // Musisz pokonać Króla Zombie na piętrze 2
                 } else {
                     // Pokonano wszystkich wrogów w zamku - boss pokonany!
                     arenaWon = true;
@@ -587,10 +696,45 @@ function gameLoop() {
         return;
     }
 
-    // Rysowanie (powinno być w rendering/game.js)
-    if (typeof drawArena === 'function') {
+    // Aktualizuj kamerę 2D (potrzebna dla damageTexts i ewentualnego fallbacku)
+    if (player && canvas) {
+        camera.x = player.x - canvas.width / 2;
+        camera.y = player.y - canvas.height / 2;
+        camera.x = Math.max(0, Math.min(ARENA_W - canvas.width, camera.x));
+        camera.y = Math.max(0, Math.min(ARENA_H - canvas.height, camera.y));
+    }
+
+    // Rendering 3D (lub fallback 2D)
+    var rendered3D = false;
+    if (typeof renderArena3D === 'function') {
+        renderArena3D();
+        // Sprawdź czy faktycznie zrenderowaliśmy 3D (czy nie było fallbacku)
+        rendered3D = (typeof use3D !== 'undefined' && use3D && typeof renderer3d !== 'undefined' && renderer3d);
+    } else if (typeof drawArena === 'function') {
         drawArena();
     }
-    
+
+    // Jeśli 3D było aktywne — czyść canvas 2D overlay i rysuj tylko UI + damage texts
+    // ALE nie czyść gdy gracz jest w zamku (tam rysujemy w 2D)
+    if (rendered3D && ctx && canvas && !inCastle) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Teksty obrażeń (damage texts) — były w drawArena
+        ctx.globalAlpha = 1;
+        for (var i = 0; i < damageTexts.length; i++) {
+            var dt = damageTexts[i];
+            ctx.globalAlpha = dt.life / 30;
+            ctx.fillStyle = dt.color;
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(dt.text, dt.x - camera.x, dt.y - camera.y);
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    // UI nadal rysujemy na canvas 2D overlay (lub wewnątrz drawArena)
+    if (typeof drawUI === 'function') {
+        drawUI();
+    }
+
     requestAnimationFrame(gameLoop);
 }

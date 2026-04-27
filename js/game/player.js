@@ -73,8 +73,14 @@ function playerAttack() {
 
     var char = characters[player.character] || characters[Object.keys(characters)[0]];
     if (!char) return;
-    var worldMX = mouse.x + camera.x;
-    var worldMY = mouse.y + camera.y;
+    var worldMX, worldMY;
+    if (typeof use3D !== 'undefined' && use3D && typeof mouseWorld3D !== 'undefined') {
+        worldMX = mouseWorld3D.x;
+        worldMY = mouseWorld3D.z;
+    } else {
+        worldMX = mouse.x + camera.x;
+        worldMY = mouse.y + camera.y;
+    }
     var angle = Math.atan2(worldMY - player.y, worldMX - player.x);
 
     player.attackCooldown = char.attackCooldown;
@@ -126,8 +132,14 @@ function useSuper() {
             player.superReady = false;
             player.superCharge = 0;
 
-            var worldMX = mouse.x + camera.x;
-            var worldMY = mouse.y + camera.y;
+            var worldMX, worldMY;
+            if (typeof use3D !== 'undefined' && use3D && typeof mouseWorld3D !== 'undefined') {
+                worldMX = mouseWorld3D.x;
+                worldMY = mouseWorld3D.z;
+            } else {
+                worldMX = mouse.x + camera.x;
+                worldMY = mouse.y + camera.y;
+            }
             var angle = Math.atan2(worldMY - player.y, worldMX - player.x);
             var dist = Math.min(Math.sqrt((worldMX-player.x)**2 + (worldMY-player.y)**2), char.superRange);
 
@@ -168,8 +180,14 @@ function useSuper() {
             player.superReady = false;
             player.superCharge = 0;
 
-            var worldMX = mouse.x + camera.x;
-            var worldMY = mouse.y + camera.y;
+            var worldMX, worldMY;
+            if (typeof use3D !== 'undefined' && use3D && typeof mouseWorld3D !== 'undefined') {
+                worldMX = mouseWorld3D.x;
+                worldMY = mouseWorld3D.z;
+            } else {
+                worldMX = mouse.x + camera.x;
+                worldMY = mouse.y + camera.y;
+            }
 
             // Stwórz strefę lawy
             player.lavaZone = {
@@ -214,8 +232,14 @@ function launchSuper() {
     var char = characters[player.character] || characters[Object.keys(characters)[0]];
     if (!char) return;
 
-    var worldMX = mouse.x + camera.x;
-    var worldMY = mouse.y + camera.y;
+    var worldMX, worldMY;
+    if (typeof use3D !== 'undefined' && use3D && typeof mouseWorld3D !== 'undefined') {
+        worldMX = mouseWorld3D.x;
+        worldMY = mouseWorld3D.z;
+    } else {
+        worldMX = mouse.x + camera.x;
+        worldMY = mouse.y + camera.y;
+    }
     var dx = worldMX - player.x;
     var dy = worldMY - player.y;
     var dist = Math.sqrt(dx*dx + dy*dy);
@@ -231,6 +255,12 @@ function launchSuper() {
 
     player.superTargetX = Math.max(20, Math.min(ARENA_W - 20, player.superTargetX));
     player.superTargetY = Math.max(25, Math.min(ARENA_H - 25, player.superTargetY));
+}
+
+function clampPlayerToArena() {
+    if (inCastle) return;
+    player.x = Math.max(20, Math.min(ARENA_W - 20, player.x));
+    player.y = Math.max(25, Math.min(ARENA_H - 25, player.y));
 }
 
 // drawProjectile zdefiniowane w js/rendering/arena-renderer.js
@@ -374,6 +404,7 @@ function updatePlayer() {
                 player.y = player.superY + (player.superTargetY - player.superY) * t - jumpH;
             }
         }
+        clampPlayerToArena();
         return;
     }
 
@@ -391,6 +422,10 @@ function updatePlayer() {
     var blocked = false;
     for (var i = 0; i < walls.length; i++) {
         if (rectsOverlap(newX-20, newY-25, 40, 50, walls[i].x, walls[i].y, walls[i].w, walls[i].h)) blocked = true;
+    }
+    // Kolizja z krzewami (bushes)
+    for (var i = 0; i < bushes.length; i++) {
+        if (rectsOverlap(newX-20, newY-25, 40, 50, bushes[i].x, bushes[i].y, bushes[i].w, bushes[i].h)) blocked = true;
     }
 
     // === WEJŚCIE DO ZAMKU ===
@@ -411,21 +446,45 @@ function updatePlayer() {
         // === LOGIKA WEWNĄTRZ ZAMKU ===
 
         // Wyjście z zamku (na dole)
-        if (player.y > canvas.height - 80 && (keys['s'] || keys['arrowdown'])) {
+        if (player.y > canvas.height - 130 && (keys['s'] || keys['arrowdown'])) {
             inCastle = false;
             player.x = castle.x + castle.w/2;
             player.y = castle.y + castle.h + 30;
             return;
         }
 
-        // Przejście na wieżę
+        // Przejście na piętro 1 - tylko jak pokonasz wszystkich na parterze
         if (castleFloor === 0 && player.y < 100 && (keys['w'] || keys['arrowup'])) {
+            if (castleEnemies && castleEnemies.length > 0) {
+                damageTexts.push({ x: player.x, y: player.y - 60, text: 'Pokonaj wszystkich na parterze!', life: 60, color: '#ff4444' });
+                player.y = 110;
+                return;
+            }
             castleFloor = 1;
             player.y = canvas.height - 150;
             return;
         }
 
-        // Powrót z wieży na parter
+        // Przejście na piętro 2 (komnata bossa) - tylko jak pokonasz wszystkich na piętrze 1
+        if (castleFloor === 1 && player.y < 100 && (keys['w'] || keys['arrowup'])) {
+            if (towerEnemies && towerEnemies.length > 0) {
+                damageTexts.push({ x: player.x, y: player.y - 60, text: 'Pokonaj wszystkich na piętrze 1!', life: 60, color: '#ff4444' });
+                player.y = 110;
+                return;
+            }
+            castleFloor = 2;
+            player.y = canvas.height - 150;
+            return;
+        }
+
+        // Powrót z piętra 2 na piętro 1
+        if (castleFloor === 2 && player.y > canvas.height - 80 && (keys['s'] || keys['arrowdown'])) {
+            castleFloor = 1;
+            player.y = 100;
+            return;
+        }
+
+        // Powrót z piętra 1 na parter
         if (castleFloor === 1 && player.y > canvas.height - 80 && (keys['s'] || keys['arrowdown'])) {
             castleFloor = 0;
             player.y = 100;
@@ -434,7 +493,7 @@ function updatePlayer() {
 
         // Ograniczenia wewnątrz zamku
         newX = Math.max(50, Math.min(canvas.width - 50, newX));
-        newY = Math.max(50, Math.min(canvas.height - 100, newY));
+        newY = Math.max(50, Math.min(canvas.height - 60, newY));
 
         player.x = newX;
         player.y = newY;
@@ -442,8 +501,9 @@ function updatePlayer() {
     }
 
     if (!blocked) {
-        player.x = Math.max(20, Math.min(ARENA_W - 20, newX));
-        player.y = Math.max(25, Math.min(ARENA_H - 25, newY));
+        player.x = newX;
+        player.y = newY;
+        clampPlayerToArena();
     }
 
     if (player.attackCooldown > 0) player.attackCooldown--;

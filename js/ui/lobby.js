@@ -249,6 +249,9 @@ function selectCharacter(card, name) {
     console.log('[WYBÓR POSTACI] Ustawiono previewCharacter na: ' + previewCharacter);
     document.getElementById('charPreviewName').textContent = name;
 
+    // Aktualizuj 3D preview
+    if (typeof updateCharPreview3D === 'function') updateCharPreview3D();
+
     // Wczytaj ulepszenia dla nowo wybranej postaci
     loadCharacterUpgrades(name);
 
@@ -291,6 +294,11 @@ function equipCharacter() {
 // ========== LOBBY ANIMATION FUNCTIONS ==========
 
 function updateLobbyAnimation() {
+    // Aktualizuj postać 3D w lobby
+    if (typeof updateLobbyCharacter3D === 'function') {
+        updateLobbyCharacter3D();
+    }
+
     // Nie używamy już CSS dla animacji lobby - teraz canvas
     var preview = document.getElementById('charPreviewModel');
     var char = characters[selectedCharacter] || characters[Object.keys(characters)[0]];
@@ -386,6 +394,11 @@ var lobbyBounceTimer = 0;
 
 function bounceLobbyChar() {
     lobbyBounceTimer = 20; // 20 klatek animacji
+
+    // Animacja skoku w 3D
+    if (typeof bounceLobbyChar3D === 'function') {
+        bounceLobbyChar3D();
+    }
 }
 
 function drawLobbyCharacter() {

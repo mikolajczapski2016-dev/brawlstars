@@ -9,6 +9,15 @@ function updateAttacks() {
     for (var i = attacks.length - 1; i >= 0; i--) {
         var a = attacks[i];
 
+        // W zamku ignoruj ataki wrogów z areny (pozostaw tylko pioruny czarodziejów)
+        if (inCastle && a.owner === 'enemy' && a.type !== 'lightning') {
+            a.life--;
+            if (a.life <= 0 || a.dist > a.maxDist) {
+                attacks.splice(i, 1);
+            }
+            continue;
+        }
+
         // RÓŻOWA CHMURA (UltraZombi) - tworzy strefę trucizny
         if (a.type === 'pinkcloud') {
             a.dist += 8;
@@ -261,7 +270,7 @@ function updateAttacks() {
 
         if (a.owner === 'player') {
             // === TRAFIENIE W AKUMULATOR ===
-            if (!inCastle && accumulators && accumulators.length > 0) {
+            if (inCastle && castleFloor === 2 && accumulators && accumulators.length > 0) {
                 var hitAcc = false;
                 for (var aj = 0; aj < accumulators.length; aj++) {
                     var acc = accumulators[aj];
@@ -325,7 +334,7 @@ function updateAttacks() {
                 }
 
                 // Atak na bossa
-                if (castleBoss && castleFloor === 1 && castleEnemies.length === 0 && towerEnemies.length === 0) {
+                if (castleBoss && castleFloor === 2) {
                     var bdx = ax - castleBoss.x;
                     var bdy = ay - castleBoss.y;
                     if (Math.sqrt(bdx*bdx + bdy*bdy) < a.size + 40) {

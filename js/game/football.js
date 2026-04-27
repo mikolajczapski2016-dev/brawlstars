@@ -17,12 +17,15 @@ function startFootball() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
+        // Inicjalizacja 3D
+        initArena3D();
+
         // Ustaw gracza (bramkarz/napastnik)
         var hpLevel = getUpgradeLevel(0);
         var atkLevel = getUpgradeLevel(1);
         var spdLevel = getUpgradeLevel(2);
         player.maxHp = 100 + (hpLevel - 1) * 20;
-        player.attackDamage = 20 + (atkLevel - 1) * 5;
+        player.attackDamage = (adminSettings.playerDamage > 0) ? adminSettings.playerDamage : (20 + (atkLevel - 1) * 5);
         player.speed = 3 + (spdLevel - 1) * 0.4;
         player.x = 150;
         player.y = ARENA_H / 2;

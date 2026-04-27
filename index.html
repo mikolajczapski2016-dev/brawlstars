@@ -8,7 +8,8 @@
 <body>
 
 <div id="lobby">
-    <canvas id="lobbyBg" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;"></canvas>
+    <div id="lobby3d" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></div>
+    <canvas id="lobbyBg" style="display:none;"></canvas>
     <div class="stars" id="stars"></div>
 
     <div class="trophies-bar trophies-left" onclick="openPanel('trophyRoad')" style="cursor:pointer;" id="trophiesDisplay">🏆 0</div>
@@ -17,8 +18,8 @@
 
     <div class="logo">ZOMBIE <span>STORY</span></div>
 
-    <div class="lobby-character" id="lobbyCharacter">
-        <canvas id="lobbyCanvas" width="200" height="200" style="cursor: pointer;" onclick="bounceLobbyChar()"></canvas>
+    <div class="lobby-character" id="lobbyCharacter" onclick="bounceLobbyChar()" style="cursor:pointer;">
+        <canvas id="lobbyCanvas" width="200" height="200" style="display:none;"></canvas>
     </div>
 
     <button class="btn btn-side btn-characters" onclick="openPanel('characters')">🎮 POSTACIE</button>
@@ -76,8 +77,8 @@
         </div>
 
         <div class="char-preview">
-            <div class="char-preview-model" id="charPreviewModel">
-                <canvas id="charPreviewCanvas" width="200" height="200" style="cursor: pointer;" onclick="bouncePreviewChar()"></canvas>
+            <div class="char-preview-model" id="charPreviewModel" style="position:relative; width:200px; height:200px;">
+                <div id="charPreview3d" style="position:absolute; top:0; left:0; width:100%; height:100%;"></div>
             </div>
             <div class="char-preview-name" id="charPreviewName">Zombie</div>
         </div>
@@ -242,8 +243,9 @@
 </div>
 
 <div id="gameScreen" style="display:none; width:100%; height:100vh; position:relative;">
-    <canvas id="arenaCanvas"></canvas>
-    <button id="superBtn" onclick="useSuperBtn()" style="display: none; position: absolute; bottom: 30px; right: 30px; width: 80px; height: 80px; border-radius: 50%; border: 4px solid #555; background: rgba(100, 100, 100, 0.6); color: #fff; font-size: 14px; font-weight: 800; cursor: pointer; z-index: 5; transition: all 0.2s;">SUPER</button>
+    <div id="game3dContainer" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:1; pointer-events:none;"></div>
+    <canvas id="arenaCanvas" style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:2; pointer-events:none;"></canvas>
+    <button id="superBtn" onclick="useSuperBtn()" style="display: none; position: absolute; bottom: 30px; right: 30px; width: 80px; height: 80px; border-radius: 50%; border: 4px solid #555; background: rgba(100, 100, 100, 0.6); color: #fff; font-size: 14px; font-weight: 800; cursor: pointer; z-index: 10; transition: all 0.2s;">SUPER</button>
     <button id="pauseBtn" onclick="togglePause()" style="position: absolute; top: 15px; right: 15px; width: 50px; height: 50px; border-radius: 10px; border: 2px solid rgba(255,255,255,0.4); background: rgba(0,0,0,0.5); color: #fff; font-size: 22px; cursor: pointer; z-index: 10;">⏸</button>
     <div id="pauseOverlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9; align-items:center; justify-content:center; flex-direction:column;">
         <div style="color:#fff; font-size:52px; font-weight:900; font-family:Arial; margin-bottom:30px;">⏸ PAUZA</div>
@@ -254,29 +256,37 @@
 
 <!-- ===== SKRYPTY - kolejność ładowania jest ważna! ===== -->
 
+<!-- 0. Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
 <!-- 1. Dane gry (brak zależności) -->
-<script src="js/data/config.js"></script>
-<script src="js/data/characters.js"></script>
-<script src="js/data/rewards.js"></script>
+<script src="js/data/config.js?v=2"></script>
+<script src="js/data/characters.js?v=2"></script>
+<script src="js/data/rewards.js?v=2"></script>
 
 <!-- 2. Stan gry i UI (zależy od danych) -->
-<script src="js/ui/lobby.js"></script>
-<script src="js/ui/upgrades.js"></script>
-<script src="js/ui/save-load.js"></script>
-<script src="js/ui/shop.js"></script>
-<script src="js/ui/panels.js"></script>
+<script src="js/ui/lobby.js?v=2"></script>
+<script src="js/ui/upgrades.js?v=2"></script>
+<script src="js/ui/save-load.js?v=2"></script>
+<script src="js/ui/shop.js?v=2"></script>
+<script src="js/ui/panels.js?v=2"></script>
 
 <!-- 3. Rendering (zależy od danych i stanu) -->
-<script src="js/rendering/lobby-characters.js"></script>
-<script src="js/rendering/game-characters.js"></script>
-<script src="js/rendering/lobby-background.js"></script>
-<script src="js/rendering/arena-renderer.js"></script>
+<script src="js/rendering/arena-3d.js?v=2"></script>
+<script src="js/rendering/lobby-3d.js?v=2"></script>
+<script src="js/rendering/char-preview-3d.js?v=2"></script>
+<script src="js/rendering/lobby-characters.js?v=2"></script>
+<script src="js/rendering/game-characters.js?v=2"></script>
+<script src="js/rendering/lobby-background.js?v=2"></script>
+<script src="js/rendering/arena-renderer.js?v=2"></script>
 
 <!-- 4. Logika gry (zależy od wszystkiego powyżej) -->
-<script src="js/game/arena.js"></script>
-<script src="js/game/player.js"></script>
-<script src="js/game/enemies.js"></script>
-<script src="js/game/attacks.js"></script>
+<script src="js/game/arena.js?v=2"></script>
+<script src="js/game/player.js?v=2"></script>
+<script src="js/game/enemies.js?v=2"></script>
+<script src="js/game/attacks.js?v=2"></script>
+<script src="js/game/football.js?v=2"></script>
+<script src="js/game/nest.js?v=2"></script>
 
 
 <!-- 5. Inicjalizacja (uruchamia grę) -->
@@ -315,8 +325,7 @@
     // Start!
     loadGame();
     updateUpgradeBtns();
-    drawLobbyCharacter();
-    drawLobbyBackground();
+    initLobby3D();
     updateArenaLevelDisplay();
 
     // Autozapis co 5 sekund

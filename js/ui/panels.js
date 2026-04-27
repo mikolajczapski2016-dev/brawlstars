@@ -10,7 +10,8 @@ var adminSettings = JSON.parse(localStorage.getItem('adminSettings')) || {
     gameName: 'Brawl Stars Clone',
     version: '1.0',
     maxCoins: 999999999,
-    allowCodeChange: false
+    allowCodeChange: false,
+    playerDamage: 0
 };
 var creatorCodeUsed = false;
 var usedCreatorCodes = JSON.parse(localStorage.getItem('usedCreatorCodes')) || [];
@@ -48,6 +49,8 @@ function openPanel(id) {
         previewCharacter = selectedCharacter; // ustaw podgląd na aktualną postać
         refreshCharList();
         document.getElementById('charPreviewName').textContent = selectedCharacter;
+        // Inicjalizuj 3D preview
+        if (typeof initCharPreview3D === 'function') initCharPreview3D();
         // Wczytaj ulepszenia dla aktualnie wybranej postaci
         loadCharacterUpgrades(selectedCharacter);
         // Uruchom animację podglądu postaci
@@ -62,6 +65,10 @@ function openPanel(id) {
 // Zamykanie paneli
 function closePanel(id) {
     document.getElementById(id).classList.remove('active');
+    // Wyczyść 3D preview przy zamykaniu panelu postaci
+    if (id === 'characters' && typeof disposeCharPreview3D === 'function') {
+        disposeCharPreview3D();
+    }
 }
 
 // ========== TRY CHARACTER PANEL ==========
@@ -85,9 +92,13 @@ function startTrainingArena() {
     ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+
+    // Inicjalizacja 3D
+    initArena3D();
+
     player.x = 400; player.y = 400;
     player.hp = 200; player.maxHp = 200;
-    player.attackDamage = 25; // stała siła ataku dla treningu
+    player.attackDamage = (adminSettings.playerDamage > 0) ? adminSettings.playerDamage : 25;
     player.superCharge = 100;
     player.superReady = true;
     player.character = tryCharacterName;
@@ -117,7 +128,10 @@ function startTrainingMatch() {
     ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    player.x = 400; player.y = 400;
+
+    // Inicjalizacja 3D
+    initArena3D();
+
     player.hp = 100; player.maxHp = 100;
     player.superCharge = 100;
     player.superReady = true;
@@ -125,6 +139,8 @@ function startTrainingMatch() {
     document.getElementById('superBtn').style.display = 'block';
     attacks = []; particles = []; damageTexts = [];
     initArena();
+    var spawnPos = findFreePosition();
+    player.x = spawnPos.x; player.y = spawnPos.y;
     gameRunning = true;
     updateSuperBtn();
     gameLoop();
@@ -216,6 +232,7 @@ function renderAdminPanel() {
         '<div style="margin-top:10px;"><label style="color:#aaa;">Nazwa gry:</label> <input type="text" id="gameNameInput" value="' + adminSettings.gameName + '" onchange="updateAdminSetting(\'gameName\', this.value)" style="padding:5px;border-radius:5px;border:1px solid #555;background:#222;color:#fff;width:150px;"></div>' +
         '<div style="margin-top:10px;"><label style="color:#aaa;">Wersja:</label> <input type="text" id="versionInput" value="' + adminSettings.version + '" onchange="updateAdminSetting(\'version\', this.value)" style="padding:5px;border-radius:5px;border:1px solid #555;background:#222;color:#fff;width:80px;"></div>' +
         '<div style="margin-top:10px;"><label style="color:#aaa;">Max monet:</label> <input type="number" id="maxCoinsInput" value="' + adminSettings.maxCoins + '" onchange="updateAdminSetting(\'maxCoins\', parseInt(this.value))" style="padding:5px;border-radius:5px;border:1px solid #555;background:#222;color:#fff;width:120px;"></div>' +
+        '<div style="margin-top:10px;"><label style="color:#aaa;">Obrażenia gracza:</label> <input type="number" id="playerDamageInput" value="' + adminSettings.playerDamage + '" onchange="updateAdminSetting(\'playerDamage\', parseInt(this.value))" style="padding:5px;border-radius:5px;border:1px solid #555;background:#222;color:#fff;width:80px;"> <span style="color:#888;font-size:12px;">(0 = domyślne z ulepszeń)</span></div>' +
         '<div style="margin-top:10px;"><button onclick="resetGame()" style="background:#ff5555;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;">🔄 RESETUJ GRĘ</button></div>' +
         '</div>' +
         '<div style="text-align:left;margin-bottom:20px;">' +

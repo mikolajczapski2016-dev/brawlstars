@@ -39,23 +39,20 @@ function pickEnemyType(ex, ey, pool) {
 
 function createEnemyByLevel() {
     var ex, ey, valid;
-    do {
-        ex = 50 + Math.random() * (ARENA_W - 100);
-        ey = 50 + Math.random() * (ARENA_H - 100);
-        valid = true;
+    for (var tries = 0; tries < 200; tries++) {
+        var pos = findFreePosition();
+        ex = pos.x; ey = pos.y;
         var dx = ex - player.x;
         var dy = ey - player.y;
-        if (Math.sqrt(dx*dx + dy*dy) < 150) valid = false;
-        for (var j = 0; j < walls.length; j++) {
-            if (rectsOverlap(ex-20, ey-25, 40, 50, walls[j].x, walls[j].y, walls[j].w, walls[j].h)) {
-                valid = false;
-            }
+        if (Math.sqrt(dx*dx + dy*dy) >= 150) {
+            valid = true; break;
         }
-    } while (!valid);
+    }
 
     var enemy;
     if (arenaLevel >= 100) {
-        enemy = createBoss(ex, ey);
+        // Boss tylko w zamku, na arenie same elity
+        enemy = createZombieElite(ex, ey);
     } else if (arenaLevel >= 90) {
         var r = Math.random();
         if (r < 0.4)      enemy = createWizard(ex, ey);
@@ -235,6 +232,8 @@ function createZombie() {
 }
 
 function updateEnemies() {
+    // Wrogowie z areni nie ruszają się gdy gracz jest w zamku
+    if (!inCastle) {
     for (var i = enemies.length - 1; i >= 0; i--) {
         var e = enemies[i];
         if (e.hp <= 0) {
@@ -389,6 +388,12 @@ function updateEnemies() {
                     eBlocked = true;
                 }
             }
+            // Kolizja z krzewami (bushes)
+            for (var j = 0; j < bushes.length; j++) {
+                if (rectsOverlap(newEX-20, newEY-25, 40, 50, bushes[j].x, bushes[j].y, bushes[j].w, bushes[j].h)) {
+                    eBlocked = true;
+                }
+            }
             // Kolizja z graczem - nie wchodzi w postac
             if (rectsOverlap(newEX-20, newEY-25, 40, 50, player.x-20, player.y-25, 40, 50)) {
                 eBlocked = true;
@@ -513,9 +518,11 @@ function updateEnemies() {
             }
         }
     }
+    } // koniec if (!inCastle)
 
     // === AKTUALIZACJA WROGÓW W ZAMKU ===
-    if (inCastle) {
+    // W zamku: piętro 0 = castleEnemies (parter), piętro 1 = towerEnemies, piętro 2 = boss
+    if (inCastle && castleFloor < 2) {
         var enemyList = castleFloor === 0 ? castleEnemies : towerEnemies;
 
         for (var i = enemyList.length - 1; i >= 0; i--) {
@@ -610,7 +617,8 @@ function updateEnemies() {
         }
 
         // === AKTUALIZACJA BOSS ===
-        if (castleBoss && castleFloor === 1 && castleEnemies.length === 0 && towerEnemies.length === 0) {
+        // Boss jest na piętrze 2 (komnata króla zombie)
+        if (castleBoss && castleFloor === 2) {
             var b = castleBoss;
             var dx = player.x - b.x;
             var dy = player.y - b.y;

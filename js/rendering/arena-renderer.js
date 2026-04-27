@@ -292,6 +292,57 @@ function drawBoss(x, y) {
     ctx.fillText(castleBoss && castleBoss.phase2 ? '💀 KRÓL ZOMBIE - FAZA 2' : '👑 KRÓL ZOMBIE', x, y - (bossHasArmor ? 140 : 110));
 }
 
+function drawAccumulators() {
+    if (!accumulators || accumulators.length === 0) return;
+    var now = Date.now() / 1000;
+
+    for (var ai = 0; ai < accumulators.length; ai++) {
+        var acc = accumulators[ai];
+        if (!acc.active) {
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.ellipse(acc.x, acc.y + 5, 20, 8, 0, 0, Math.PI*2);
+            ctx.fill();
+            continue;
+        }
+        var pulse = Math.sin(now * 3 + ai) * 6;
+        var grd = ctx.createRadialGradient(acc.x, acc.y, 5, acc.x, acc.y, 50 + pulse);
+        grd.addColorStop(0, 'rgba(79, 195, 247, 0.7)');
+        grd.addColorStop(1, 'rgba(79, 195, 247, 0)');
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(acc.x, acc.y, 50 + pulse, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#37474f';
+        ctx.fillRect(acc.x - 18, acc.y + 10, 36, 20);
+        ctx.fillStyle = '#546e7a';
+        ctx.fillRect(acc.x - 10, acc.y - 25, 20, 40);
+        ctx.fillStyle = bossHasArmor ? '#4fc3f7' : '#607d8b';
+        ctx.beginPath();
+        ctx.moveTo(acc.x, acc.y - 40 - pulse/2);
+        ctx.lineTo(acc.x - 14, acc.y - 20);
+        ctx.lineTo(acc.x, acc.y - 10);
+        ctx.lineTo(acc.x + 14, acc.y - 20);
+        ctx.closePath();
+        ctx.fill();
+        if (bossHasArmor && castleBoss && Math.random() < 0.3) {
+            ctx.strokeStyle = 'rgba(79,195,247,0.5)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([4, 8]);
+            ctx.beginPath();
+            ctx.moveTo(acc.x, acc.y - 30);
+            ctx.lineTo(castleBoss.x, castleBoss.y - 30);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        var hpRatio = acc.hp / acc.maxHp;
+        ctx.fillStyle = '#333';
+        ctx.fillRect(acc.x - 20, acc.y - 55, 40, 6);
+        ctx.fillStyle = hpRatio > 0.5 ? '#4fc3f7' : (hpRatio > 0.25 ? '#ffeb3b' : '#f44336');
+        ctx.fillRect(acc.x - 20, acc.y - 55, 40 * hpRatio, 6);
+    }
+}
+
 function drawArena() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -304,104 +355,45 @@ function drawArena() {
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
 
-    // Tlo areny - zielona trawa
-    ctx.fillStyle = '#4a8c2a';
-    ctx.fillRect(0, 0, ARENA_W, ARENA_H);
-
-    // Siatka
-    ctx.strokeStyle = 'rgba(0,0,0,0.08)';
-    ctx.lineWidth = 1;
-    for (var x = 0; x < ARENA_W; x += 50) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, ARENA_H); ctx.stroke();
-    }
-    for (var y = 0; y < ARENA_H; y += 50) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(ARENA_W, y); ctx.stroke();
-    }
-
-    // Granica areny
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(0, 0, ARENA_W, ARENA_H);
-
-    // Krzewy
-    for (var i = 0; i < bushes.length; i++) {
-        var b = bushes[i];
-        ctx.fillStyle = '#2d6b1a';
-        ctx.beginPath();
-        ctx.ellipse(b.x + b.w/2, b.y + b.h/2, b.w/2, b.h/2, 0, 0, Math.PI*2);
-        ctx.fill();
-        ctx.fillStyle = '#3a8a25';
-        ctx.beginPath();
-        ctx.ellipse(b.x + b.w/2 - 5, b.y + b.h/2 - 5, b.w/2 - 8, b.h/2 - 8, 0, 0, Math.PI*2);
-        ctx.fill();
-    }
-
-    // Sciany
-    for (var i = 0; i < walls.length; i++) {
-        var w = walls[i];
-        ctx.fillStyle = '#8d6e4a';
-        ctx.fillRect(w.x, w.y, w.w, w.h);
-        ctx.fillStyle = '#a0825c';
-        ctx.fillRect(w.x + 3, w.y + 3, w.w - 6, w.h - 6);
-        ctx.strokeStyle = '#6b5335';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(w.x, w.y, w.w, w.h);
-    }
-
-    // === AKUMULATORY ZBROI ===
-    if (accumulators && accumulators.length > 0) {
-        var now = Date.now() / 1000;
-        for (var ai = 0; ai < accumulators.length; ai++) {
-            var acc = accumulators[ai];
-            if (!acc.active) {
-                // Zniszczony - popioły
-                ctx.fillStyle = '#333';
-                ctx.beginPath();
-                ctx.ellipse(acc.x, acc.y + 5, 20, 8, 0, 0, Math.PI*2);
-                ctx.fill();
-                continue;
+    if (!inCastle) {
+        // Tlo areny - zielona szachownica kratek 50x50
+        var gridSize = 50;
+        for (var gx = 0; gx < ARENA_W; gx += gridSize) {
+            for (var gy = 0; gy < ARENA_H; gy += gridSize) {
+                var isEven = ((gx / gridSize) + (gy / gridSize)) % 2 === 0;
+                ctx.fillStyle = isEven ? '#4a8c2a' : '#3e7a22';
+                ctx.fillRect(gx, gy, gridSize, gridSize);
             }
-            var pulse = Math.sin(now * 3 + ai) * 6;
-            // Poświata
-            var grd = ctx.createRadialGradient(acc.x, acc.y, 5, acc.x, acc.y, 50 + pulse);
-            grd.addColorStop(0, 'rgba(79, 195, 247, 0.7)');
-            grd.addColorStop(1, 'rgba(79, 195, 247, 0)');
-            ctx.fillStyle = grd;
+        }
+
+        // Granica areny
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(0, 0, ARENA_W, ARENA_H);
+
+        // Krzewy
+        for (var i = 0; i < bushes.length; i++) {
+            var b = bushes[i];
+            ctx.fillStyle = '#2d6b1a';
             ctx.beginPath();
-            ctx.arc(acc.x, acc.y, 50 + pulse, 0, Math.PI*2);
+            ctx.ellipse(b.x + b.w/2, b.y + b.h/2, b.w/2, b.h/2, 0, 0, Math.PI*2);
             ctx.fill();
-            // Podstawa
-            ctx.fillStyle = '#37474f';
-            ctx.fillRect(acc.x - 18, acc.y + 10, 36, 20);
-            // Filar
-            ctx.fillStyle = '#546e7a';
-            ctx.fillRect(acc.x - 10, acc.y - 25, 20, 40);
-            // Kryształ
-            ctx.fillStyle = bossHasArmor ? '#4fc3f7' : '#607d8b';
+            ctx.fillStyle = '#3a8a25';
             ctx.beginPath();
-            ctx.moveTo(acc.x, acc.y - 40 - pulse/2);
-            ctx.lineTo(acc.x - 14, acc.y - 20);
-            ctx.lineTo(acc.x, acc.y - 10);
-            ctx.lineTo(acc.x + 14, acc.y - 20);
-            ctx.closePath();
+            ctx.ellipse(b.x + b.w/2 - 5, b.y + b.h/2 - 5, b.w/2 - 8, b.h/2 - 8, 0, 0, Math.PI*2);
             ctx.fill();
-            // Błyskawice między kryształem a bossem (efekt energii)
-            if (bossHasArmor && castleBoss && Math.random() < 0.3) {
-                ctx.strokeStyle = 'rgba(79,195,247,0.5)';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([4, 8]);
-                ctx.beginPath();
-                ctx.moveTo(acc.x, acc.y - 30);
-                ctx.lineTo(castleBoss.x, castleBoss.y - 30);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-            // HP akumulatora
-            var hpRatio = acc.hp / acc.maxHp;
-            ctx.fillStyle = '#333';
-            ctx.fillRect(acc.x - 20, acc.y - 55, 40, 6);
-            ctx.fillStyle = hpRatio > 0.5 ? '#4fc3f7' : (hpRatio > 0.25 ? '#ffeb3b' : '#f44336');
-            ctx.fillRect(acc.x - 20, acc.y - 55, 40 * hpRatio, 6);
+        }
+
+        // Sciany
+        for (var i = 0; i < walls.length; i++) {
+            var w = walls[i];
+            ctx.fillStyle = '#8d6e4a';
+            ctx.fillRect(w.x, w.y, w.w, w.h);
+            ctx.fillStyle = '#a0825c';
+            ctx.fillRect(w.x + 3, w.y + 3, w.w - 6, w.h - 6);
+            ctx.strokeStyle = '#6b5335';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(w.x, w.y, w.w, w.h);
         }
     }
 
@@ -475,59 +467,80 @@ function drawArena() {
         ctx.fillStyle = '#3e2723';
         ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
 
-        // Schody na wieżę (jeśli pokonano wrogów)
+        // Schody na górę / wyjście
         if (castleFloor === 0) {
-            // Parter - info
+            // Parter - czarodzieje, zombie i strażnicy
             ctx.fillStyle = '#ffd700';
             ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('🏰 ZAMEK - POKOJE CZARODZIEJÓW', canvas.width/2, 50);
+            ctx.fillText('🏰 ZAMEK - PARTER', canvas.width/2, 50);
             ctx.fillStyle = '#fff';
             ctx.font = '14px Arial';
-            ctx.fillText('Zniszcz wszystkich wrogów aby przejść na wieżę!', canvas.width/2, 80);
-            ctx.fillText('⬆ SCHODY NA GÓRĘ', canvas.width/2, canvas.height - 40);
+            ctx.fillText('Zniszcz wszystkich wrogów aby wejść na piętro 1!', canvas.width/2, 80);
+            ctx.fillText('⬆ SCHODY NA PIĘTRO 1', canvas.width/2, canvas.height - 40);
 
             // Rysuj wrogów w zamku
             for (var i = 0; i < castleEnemies.length; i++) {
                 drawEnemy(castleEnemies[i]);
             }
-        } else {
-            // Wieża - komnata bossa
-            ctx.fillStyle = '#7b1fa2';
+
+            // Wyjście z zamku
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('⬇ WYJDŹ Z ZAMKU', canvas.width/2, canvas.height - 150);
+
+        } else if (castleFloor === 1) {
+            // Piętro 1 - strażnicy i zombie
+            ctx.fillStyle = '#5d4037';
             ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('👑 KOMNATA KRÓLA ZOMBIE', canvas.width/2, 50);
+            ctx.fillText('🏰 ZAMEK - PIĘTRO 1', canvas.width/2, 50);
+            ctx.fillStyle = '#fff';
+            ctx.font = '14px Arial';
+            ctx.fillText('Pokonaj wrogów aby wejść do komnaty bossa!', canvas.width/2, 80);
+            ctx.fillText('⬆ SCHODY NA PIĘTRO 2', canvas.width/2, canvas.height - 40);
 
-            // Rysuj wrogów na wieży
+            // Rysuj wrogów na piętrze 1
             for (var i = 0; i < towerEnemies.length; i++) {
                 drawEnemy(towerEnemies[i]);
             }
 
-            // Jeśli nie ma wrogów na wieży - pokaż bossa
-            if (towerEnemies.length === 0 && castleEnemies.length === 0 && castleBoss) {
-                // Dialog z bossem przed walką
+            // Powrót na parter
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('⬇ Z powrotem na parter', canvas.width/2, canvas.height - 150);
+
+        } else {
+            // Piętro 2 - komnata bossa
+            ctx.fillStyle = '#7b1fa2';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('👑 KOMNATA KRÓLA ZOMBIE - PIĘTRO 2', canvas.width/2, 50);
+
+            // Akumulatory w komnacie bossa
+            drawAccumulators();
+
+            // Boss z dialogiem
+            if (castleBoss) {
                 if (!bossDialogShown) {
                     var d = bossDialogs[bossDialogStep];
-                    // Tło dialogu
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
                     ctx.fillRect(50, canvas.height - 180, canvas.width - 100, 150);
                     ctx.strokeStyle = '#ffd700';
                     ctx.lineWidth = 3;
                     ctx.strokeRect(50, canvas.height - 180, canvas.width - 100, 150);
-                    // Głos
                     ctx.fillStyle = '#ffd700';
                     ctx.font = 'bold 18px Arial';
                     ctx.textAlign = 'center';
                     ctx.fillText(d.speaker, canvas.width/2, canvas.height - 150);
-                    // Tekst
                     ctx.fillStyle = '#fff';
                     ctx.font = '16px Arial';
                     ctx.fillText(d.text, canvas.width/2, canvas.height - 120);
-                    // Instrukcja
                     ctx.fillStyle = '#888';
                     ctx.font = '14px Arial';
                     ctx.fillText('Naciśnij ENTER aby kontynuować...', canvas.width/2, canvas.height - 55);
-                    // Zatrzymaj grę podczas dialogu
                     return;
                 }
 
@@ -541,13 +554,13 @@ function drawArena() {
                 ctx.fillStyle = '#ff0000';
                 ctx.fillRect(canvas.width/2 - bossHpW/2, 100, bossHpW * (castleBoss.hp / castleBoss.maxHp), 15);
             }
-        }
 
-        // Wyjście z zamku
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('⬇ WYJDŹ', canvas.width/2, canvas.height - 150);
+            // Powrót na piętro 1
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('⬇ Z powrotem na piętro 1', canvas.width/2, canvas.height - 150);
+        }
     }
 
     // Ataki (Data-Driven)
@@ -818,9 +831,11 @@ function drawArena() {
         ctx.fillRect(nestObject.x - 40, nestObject.y - 60, 80 * (nestObject.hp / nestObject.maxHp), 8);
     }
 
-    // Przeciwnicy
-    for (var i = 0; i < enemies.length; i++) {
-        drawEnemy(enemies[i]);
+    // Przeciwnicy (tylko na arenie, nie w zamku)
+    if (!inCastle) {
+        for (var i = 0; i < enemies.length; i++) {
+            drawEnemy(enemies[i]);
+        }
     }
 
     // Sojusznicy w pilce noznej
@@ -1285,7 +1300,56 @@ function drawAlly(a) {
     ctx.fillText('SOJUSZNIK', a.x, a.y - 55);
 }
 
+function drawEnemyHpBars3DOverlay() {
+    if (!(typeof use3D !== 'undefined' && use3D)) return;
+    if (!canvas || !ctx) return;
+
+    var screenW = canvas.width;
+    var screenH = canvas.height;
+    var barW = 44;
+    var barH = 6;
+
+    function drawHpBarAtScreen(sx, sy, ratio) {
+        var bx = sx - barW / 2;
+        var by = sy - 18;
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        ctx.fillRect(bx, by, barW, barH);
+        ctx.fillStyle = ratio > 0.5 ? '#4cff50' : (ratio > 0.25 ? '#ffb300' : '#ff4444');
+        ctx.fillRect(bx + 1, by + 1, (barW - 2) * ratio, barH - 2);
+    }
+
+    if (typeof THREE !== 'undefined' && typeof camera3d !== 'undefined' && camera3d && enemies) {
+        for (var i = 0; i < enemies.length; i++) {
+            var e = enemies[i];
+            if (!e || e.hp <= 0 || e.isDead) continue;
+
+            var worldPos = new THREE.Vector3(e.x, 55, e.y);
+            worldPos.project(camera3d);
+            if (worldPos.z < -1 || worldPos.z > 1) continue;
+
+            var sx = (worldPos.x * 0.5 + 0.5) * screenW;
+            var sy = (-worldPos.y * 0.5 + 0.5) * screenH;
+            if (sx < -80 || sx > screenW + 80 || sy < -40 || sy > screenH + 40) continue;
+
+            var ratio = Math.max(0, Math.min(1, e.hp / e.maxHp));
+            drawHpBarAtScreen(sx, sy, ratio);
+        }
+    }
+
+    if (inCastle) {
+        var roomEnemies = castleFloor === 0 ? castleEnemies : towerEnemies;
+        for (var ci = 0; ci < roomEnemies.length; ci++) {
+            var ce = roomEnemies[ci];
+            if (!ce || ce.hp <= 0) continue;
+            var cRatio = Math.max(0, Math.min(1, ce.hp / ce.maxHp));
+            drawHpBarAtScreen(ce.x, ce.y - 30, cRatio);
+        }
+    }
+}
+
 function drawUI() {
+    drawEnemyHpBars3DOverlay();
+
     // HP bar
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.fillRect(20, canvas.height - 50, 204, 24);
