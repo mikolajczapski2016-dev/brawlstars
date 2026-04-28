@@ -669,8 +669,10 @@ function gameLoop() {
     if (player && canvas) {
         camera.x = player.x - canvas.width / 2;
         camera.y = player.y - canvas.height / 2;
-        camera.x = Math.max(0, Math.min(ARENA_W - canvas.width, camera.x));
-        camera.y = Math.max(0, Math.min(ARENA_H - canvas.height, camera.y));
+        if (!inCastle) {
+            camera.x = Math.max(0, Math.min(ARENA_W - canvas.width, camera.x));
+            camera.y = Math.max(0, Math.min(ARENA_H - canvas.height, camera.y));
+        }
     }
 
     // Rendering 3D (lub fallback 2D)

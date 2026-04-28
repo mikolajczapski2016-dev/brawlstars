@@ -447,8 +447,11 @@ function drawArena() {
     // Kamera
     camera.x = player.x - canvas.width / 2;
     camera.y = player.y - canvas.height / 2;
-    camera.x = Math.max(0, Math.min(ARENA_W - canvas.width, camera.x));
-    camera.y = Math.max(0, Math.min(ARENA_H - canvas.height, camera.y));
+    if (!inCastle) {
+        // Na arenie - ogranicz do granic mapy
+        camera.x = Math.max(0, Math.min(ARENA_W - canvas.width, camera.x));
+        camera.y = Math.max(0, Math.min(ARENA_H - canvas.height, camera.y));
+    }
 
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
@@ -557,25 +560,27 @@ function drawArena() {
 
     // === WNĘTRZE ZAMKU ===
     if (inCastle) {
-        // Ciemne wnętrze zamku
+        // Ciemne wnętrze zamku - rysujemy w miejscu kamery (pełny ekran)
+        var cx = camera.x;
+        var cy = camera.y;
         ctx.fillStyle = '#1a1a2e';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(cx, cy, canvas.width, canvas.height);
 
         // Podłoga
         ctx.fillStyle = '#3e2723';
-        ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+        ctx.fillRect(cx, cy + canvas.height - 100, canvas.width, 100);
 
         // Schody na górę / wyjście
         if (castleFloor === 0) {
-            // Parter - czarodzieje, zombie i strażnicy
+            // Parter
             ctx.fillStyle = '#ffd700';
             ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('🏰 ZAMEK - PARTER', canvas.width/2, 50);
+            ctx.fillText('🏰 ZAMEK - PARTER', cx + canvas.width/2, cy + 50);
             ctx.fillStyle = '#fff';
             ctx.font = '14px Arial';
-            ctx.fillText('Pokonaj bossa aby wejść na piętro 1!', canvas.width/2, 80);
-            ctx.fillText('⬆ SCHODY NA PIĘTRO 1', canvas.width/2, canvas.height - 40);
+            ctx.fillText('Pokonaj bossa aby wejść na piętro 1!', cx + canvas.width/2, cy + 80);
+            ctx.fillText('⬆ SCHODY NA PIĘTRO 1', cx + canvas.width/2, cy + canvas.height - 40);
 
             // Boss piętra 0 - Sługus
             if (bossFloor0 && bossFloor0.hp > 0) {
@@ -597,18 +602,18 @@ function drawArena() {
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 14px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('⬇ WYJDŹ Z ZAMKU', canvas.width/2, canvas.height - 150);
+            ctx.fillText('⬇ WYJDŹ Z ZAMKU', cx + canvas.width/2, cy + canvas.height - 150);
 
         } else if (castleFloor === 1) {
-            // Piętro 1 - Generał Zła
+            // Piętro 1
             ctx.fillStyle = '#5d4037';
             ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('🏰 ZAMEK - PIĘTRO 1', canvas.width/2, 50);
+            ctx.fillText('🏰 ZAMEK - PIĘTRO 1', cx + canvas.width/2, cy + 50);
             ctx.fillStyle = '#fff';
             ctx.font = '14px Arial';
-            ctx.fillText('Pokonaj bossa aby wejść do komnaty króla!', canvas.width/2, 80);
-            ctx.fillText('⬆ SCHODY NA PIĘTRO 2', canvas.width/2, canvas.height - 40);
+            ctx.fillText('Pokonaj bossa aby wejść do komnaty króla!', cx + canvas.width/2, cy + 80);
+            ctx.fillText('⬆ SCHODY NA PIĘTRO 2', cx + canvas.width/2, cy + canvas.height - 40);
 
             // Boss piętra 1 - Generał Zła
             if (bossFloor1 && bossFloor1.hp > 0) {
@@ -630,14 +635,14 @@ function drawArena() {
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 14px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('⬇ Z powrotem na parter', canvas.width/2, canvas.height - 150);
+            ctx.fillText('⬇ Z powrotem na parter', cx + canvas.width/2, cy + canvas.height - 150);
 
         } else {
             // Piętro 2 - komnata bossa
             ctx.fillStyle = '#7b1fa2';
             ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('👑 KOMNATA KRÓLA ZOMBIE - PIĘTRO 2', canvas.width/2, 50);
+            ctx.fillText('👑 KOMNATA KRÓLA ZOMBIE - PIĘTRO 2', cx + canvas.width/2, cy + 50);
 
             // Akumulatory w komnacie bossa
             drawAccumulators();
@@ -647,20 +652,20 @@ function drawArena() {
                 if (!bossDialogShown) {
                     var d = bossDialogs[bossDialogStep];
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
-                    ctx.fillRect(50, canvas.height - 180, canvas.width - 100, 150);
+                    ctx.fillRect(cx + 50, cy + canvas.height - 180, canvas.width - 100, 150);
                     ctx.strokeStyle = '#ffd700';
                     ctx.lineWidth = 3;
-                    ctx.strokeRect(50, canvas.height - 180, canvas.width - 100, 150);
+                    ctx.strokeRect(cx + 50, cy + canvas.height - 180, canvas.width - 100, 150);
                     ctx.fillStyle = '#ffd700';
                     ctx.font = 'bold 18px Arial';
                     ctx.textAlign = 'center';
-                    ctx.fillText(d.speaker, canvas.width/2, canvas.height - 150);
+                    ctx.fillText(d.speaker, cx + canvas.width/2, cy + canvas.height - 150);
                     ctx.fillStyle = '#fff';
                     ctx.font = '16px Arial';
-                    ctx.fillText(d.text, canvas.width/2, canvas.height - 120);
+                    ctx.fillText(d.text, cx + canvas.width/2, cy + canvas.height - 120);
                     ctx.fillStyle = '#888';
                     ctx.font = '14px Arial';
-                    ctx.fillText('Naciśnij ENTER aby kontynuować...', canvas.width/2, canvas.height - 55);
+                    ctx.fillText('Naciśnij ENTER aby kontynuować...', cx + canvas.width/2, cy + canvas.height - 55);
                     return;
                 }
 
@@ -670,16 +675,16 @@ function drawArena() {
                 // HP bossa
                 var bossHpW = 150;
                 ctx.fillStyle = '#333';
-                ctx.fillRect(canvas.width/2 - bossHpW/2, 100, bossHpW, 15);
+                ctx.fillRect(cx + canvas.width/2 - bossHpW/2, cy + 100, bossHpW, 15);
                 ctx.fillStyle = '#ff0000';
-                ctx.fillRect(canvas.width/2 - bossHpW/2, 100, bossHpW * (castleBoss.hp / castleBoss.maxHp), 15);
+                ctx.fillRect(cx + canvas.width/2 - bossHpW/2, cy + 100, bossHpW * (castleBoss.hp / castleBoss.maxHp), 15);
             }
 
             // Powrót na piętro 1
             ctx.fillStyle = '#fff';
             ctx.font = 'bold 14px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('⬇ Z powrotem na piętro 1', canvas.width/2, canvas.height - 150);
+            ctx.fillText('⬇ Z powrotem na piętro 1', cx + canvas.width/2, cy + canvas.height - 150);
         }
     }
 
