@@ -564,26 +564,24 @@ function updateEnemies() {
     } // koniec if (!inCastle)
 
     // === AKTUALIZACJA BOSSÓW W ZAMKU ===
-    // Każde piętro ma swojego bossa!
+    // Bossowie chodzą w zamku ale go nie opuszczają!
     if (inCastle && castleFloor === 0 && bossFloor0 && bossFloor0.hp > 0) {
         var b0 = bossFloor0;
         var dx = player.x - b0.x;
         var dy = player.y - b0.y;
         var bdist = Math.sqrt(dx*dx + dy*dy);
 
-        b0.changeDir--;
-        if (b0.changeDir <= 0 || bdist < 300) {
-            b0.dir = Math.atan2(dy, dx);
-            b0.changeDir = 60;
-        }
-
+        // Podążaj za graczem ale nie wychodź z zamku
+        b0.dir = Math.atan2(dy, dx);
         var newBX = b0.x + Math.cos(b0.dir) * b0.speed;
         var newBY = b0.y + Math.sin(b0.dir) * b0.speed;
-        newBX = Math.max(castle.x + 20, Math.min(castle.x + castle.w - 20, newBX));
-        newBY = Math.max(castle.y + 20, Math.min(castle.y + castle.h - 20, newBY));
+        // Ograniczenia - tylko wewnątrz parteru zamku
+        newBX = Math.max(castle.x + 30, Math.min(castle.x + castle.w - 30, newBX));
+        newBY = Math.max(castle.y + 30, Math.min(castle.y + castle.h - 30, newBY));
         b0.x = newBX;
         b0.y = newBY;
 
+        // Melee atak gdy gracz jest blisko
         if (bdist < 70) {
             b0.attackCooldown--;
             if (b0.attackCooldown <= 0) {
@@ -600,19 +598,17 @@ function updateEnemies() {
         var dy = player.y - b1.y;
         var bdist = Math.sqrt(dx*dx + dy*dy);
 
-        b1.changeDir--;
-        if (b1.changeDir <= 0 || bdist < 300) {
-            b1.dir = Math.atan2(dy, dx);
-            b1.changeDir = 60;
-        }
-
+        // Podążaj za graczem ale nie wychodź z wieży
+        b1.dir = Math.atan2(dy, dx);
         var newBX = b1.x + Math.cos(b1.dir) * b1.speed;
         var newBY = b1.y + Math.sin(b1.dir) * b1.speed;
-        newBX = Math.max(castle.towerX + 10, Math.min(castle.towerX + castle.towerW - 10, newBX));
-        newBY = Math.max(castle.towerY + 10, Math.min(castle.towerY + castle.towerH - 10, newBY));
+        // Ograniczenia - tylko wewnątrz wieży (piętro 1)
+        newBX = Math.max(castle.towerX + 15, Math.min(castle.towerX + castle.towerW - 15, newBX));
+        newBY = Math.max(castle.towerY + 15, Math.min(castle.towerY + castle.towerH - 15, newBY));
         b1.x = newBX;
         b1.y = newBY;
 
+        // Melee atak gdy gracz jest blisko
         if (bdist < 75) {
             b1.attackCooldown--;
             if (b1.attackCooldown <= 0) {
@@ -629,19 +625,17 @@ function updateEnemies() {
         var dy = player.y - b.y;
         var bdist = Math.sqrt(dx*dx + dy*dy);
 
-        b.changeDir--;
-        if (b.changeDir <= 0 || bdist < 300) {
-            b.dir = Math.atan2(dy, dx);
-            b.changeDir = 60;
-        }
-
+        // Podążaj za graczem ale nie wychodź z komnaty bossa
+        b.dir = Math.atan2(dy, dx);
         var newBX = b.x + Math.cos(b.dir) * b.speed;
         var newBY = b.y + Math.sin(b.dir) * b.speed;
-        newBX = Math.max(100, Math.min(canvas.width - 100, newBX));
-        newBY = Math.max(150, Math.min(canvas.height - 150, newBY));
+        // Ograniczenia - tylko wewnątrz komnaty bossa
+        newBX = Math.max(castle.towerX + 10, Math.min(castle.towerX + castle.towerW - 10, newBX));
+        newBY = Math.max(castle.towerY - 100, Math.min(castle.towerY + 20, newBY));
         b.x = newBX;
         b.y = newBY;
 
+        // Melee atak gdy gracz jest blisko
         if (bdist < 80) {
             b.attackCooldown--;
             if (b.attackCooldown <= 0) {
