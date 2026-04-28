@@ -18,7 +18,7 @@ function startNest() {
         var hpLevel = getUpgradeLevel(0);
         var atkLevel = getUpgradeLevel(1);
         var spdLevel = getUpgradeLevel(2);
-        player.maxHp = 100 + (hpLevel - 1) * 20;
+        player.maxHp = (adminSettings.playerHp > 0) ? adminSettings.playerHp : (100 + (hpLevel - 1) * 20);
         player.attackDamage = (adminSettings.playerDamage > 0) ? adminSettings.playerDamage : (20 + (atkLevel - 1) * 5);
         player.speed = 3 + (spdLevel - 1) * 0.4;
         player.x = 100;
@@ -31,6 +31,7 @@ function startNest() {
         player.skin = currentSkin;
         player.character = selectedCharacter;
         player.blackHole = null;
+        player.isDashing = false;
 
         // Gniazdo zombie - na końcu mapy
         nestObject = { x: ARENA_W - 150, y: ARENA_H / 2, hp: 500, maxHp: 500 };

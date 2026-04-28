@@ -317,23 +317,33 @@ function updateAttacks() {
                 attacks.splice(i, 1);
             }
 
-            // Atak na wrogów w zamku
+            // Atak na bossów w zamku
             if (inCastle) {
-                var castleEnemyList = castleFloor === 0 ? castleEnemies : towerEnemies;
-                for (var j = 0; j < castleEnemyList.length; j++) {
-                    var e = castleEnemyList[j];
-                    var dx = ax - e.x;
-                    var dy = ay - e.y;
-                    if (Math.sqrt(dx*dx+dy*dy) < a.size + 20) {
-                        e.hp -= a.damage;
+                // Piętro 0 - Sługus
+                if (bossFloor0 && castleFloor === 0) {
+                    var bdx = ax - bossFloor0.x;
+                    var bdy = ay - bossFloor0.y;
+                    if (Math.sqrt(bdx*bdx + bdy*bdy) < a.size + 35) {
+                        bossFloor0.hp -= a.damage;
                         player.superCharge = Math.min(100, player.superCharge + 15);
-                        damageTexts.push({ x: e.x, y: e.y - 30, text: '-' + a.damage, life: 30, color: '#ff0000' });
+                        damageTexts.push({ x: bossFloor0.x, y: bossFloor0.y - 40, text: '-' + a.damage, life: 30, color: '#ff4444' });
                         attacks.splice(i, 1);
-                        break;
                     }
                 }
 
-                // Atak na bossa
+                // Piętro 1 - Generał Zła
+                if (bossFloor1 && castleFloor === 1) {
+                    var bdx = ax - bossFloor1.x;
+                    var bdy = ay - bossFloor1.y;
+                    if (Math.sqrt(bdx*bdx + bdy*bdy) < a.size + 35) {
+                        bossFloor1.hp -= a.damage;
+                        player.superCharge = Math.min(100, player.superCharge + 15);
+                        damageTexts.push({ x: bossFloor1.x, y: bossFloor1.y - 45, text: '-' + a.damage, life: 30, color: '#ff4444' });
+                        attacks.splice(i, 1);
+                    }
+                }
+
+                // Piętro 2 - Król Ciemności
                 if (castleBoss && castleFloor === 2) {
                     var bdx = ax - castleBoss.x;
                     var bdy = ay - castleBoss.y;

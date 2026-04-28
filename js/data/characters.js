@@ -209,5 +209,28 @@ var characters = {
         superDuration: 180,
         superRadius: 200,
         superVisual: 'ghost'
+    },
+    Czarodziej: {
+        icon: '🔮',
+        bgColor: '#7b1fa2',
+        lobbyAnim: 'float',
+        previewAnim: 'float',
+        skinFamily: 'czarodziej',
+        // Atak - szybki skok (dash) w stronę celu
+        attackType: 'dash',
+        attackRange: 180,
+        attackCooldown: 25,
+        attackDamage: 25,
+        projectileType: null,
+        attackColor: '#e040fb',
+        // Super - potężny skok z zamrożeniem
+        superType: 'jump',
+        superRange: 250,
+        superSpeed: 0.12,
+        superDamage: 40,
+        superKnockback: 50,
+        superEffects: ['stun'],
+        superStunDuration: 60,
+        superVisual: 'circle'
     }
 };

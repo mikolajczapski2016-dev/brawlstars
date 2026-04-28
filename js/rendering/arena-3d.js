@@ -52,6 +52,7 @@ function initArena3D() {
     renderer3d.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer3d.shadowMap.enabled = true;
     renderer3d.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer3d.domElement.style.pointerEvents = 'none';
     gameContainer.appendChild(renderer3d.domElement);
 
     // Światła
@@ -1255,6 +1256,21 @@ function createProjectile3D(attack) {
             new THREE.TorusGeometry(10, 4, 8, 20),
             new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0x7c4dff, emissiveIntensity: 0.7 })
         );
+    } else if (attack.type === 'lightning') {
+        // Piorun czarodzieja - żółta/fioletowa błyskawica
+        var group = new THREE.Group();
+        var bolt = new THREE.Mesh(
+            new THREE.CylinderGeometry(2, 1, 20, 6),
+            new THREE.MeshStandardMaterial({ color: 0xe040fb, emissive: 0xffeb3b, emissiveIntensity: 1.5 })
+        );
+        group.add(bolt);
+        var glow = new THREE.Mesh(
+            new THREE.SphereGeometry(4, 8, 8),
+            new THREE.MeshBasicMaterial({ color: 0xffeb3b, transparent: true, opacity: 0.6 })
+        );
+        glow.position.y = 0;
+        group.add(glow);
+        mesh = group;
     } else {
         mesh = new THREE.Mesh(
             new THREE.SphereGeometry(8, 8, 6),
@@ -1421,12 +1437,6 @@ function renderArena3D() {
         return;
     }
 
-    // W zamku rysujemy 2D (wnetrze zamku, wrogowie w zamku, boss, dialog)
-    if (inCastle) {
-        if (typeof drawArena === 'function') drawArena();
-        return;
-    }
-
     // Aktualizuj drzwi zamku w 3D
     updateCastleDoor3D();
 
@@ -1465,11 +1475,11 @@ function renderArena3D() {
         playerMesh.lookAt(worldMX, 0, worldMY);
     }
 
-    // Aktualizuj wrogów
+    // Aktualizuj wrogów (ukryj ich w zamku)
     for (var i = 0; i < enemies.length; i++) {
         if (enemyMeshes[i] && enemies[i]) {
             enemyMeshes[i].position.set(enemies[i].x, 0, enemies[i].y);
-            if (enemies[i].isDead) {
+            if (enemies[i].isDead || inCastle) {
                 enemyMeshes[i].visible = false;
             } else {
                 enemyMeshes[i].visible = true;
@@ -1488,13 +1498,18 @@ function renderArena3D() {
         }
     }
 
+    // Wrogowie w zamku (3D)
+    if (inCastle) {
+        updateCastleEnemies3D();
+    }
+
     // Projektyle
     updateProjectiles3D();
 
     // Cząsteczki
     updateParticles3D();
 
-    // Boss
+    // Boss (na arenie lub w zamku)
     updateBoss3D();
 
     // Piłka
@@ -1558,6 +1573,51 @@ function updateMouseWorld3D() {
         aimRing3d.visible = gameRunning && !player.superReady;
         var pulse = 1 + Math.sin(Date.now() / 150) * 0.15;
         aimRing3d.scale.setScalar(pulse);
+    }
+}
+
+// ============================================================
+// WROGOWIE W ZAMKU 3D
+// ============================================================
+
+var castleEnemyMeshes = [];
+
+function updateCastleEnemies3D() {
+    if (!scene3d) return;
+    if (!inCastle) {
+        // Ukryj wszystkie meshe wrogów zamku gdy na arenie
+        for (var i = 0; i < castleEnemyMeshes.length; i++) {
+            if (castleEnemyMeshes[i]) castleEnemyMeshes[i].visible = false;
+        }
+        return;
+    }
+    // Upewnij się że mamy tyle meshów ile bossów (max 1 na piętro)
+    var enemyList = [];
+    if (castleFloor === 0 && bossFloor0 && bossFloor0.hp > 0) enemyList.push(bossFloor0);
+    if (castleFloor === 1 && bossFloor1 && bossFloor1.hp > 0) enemyList.push(bossFloor1);
+    
+    // Usuń nadmiarowe meshe
+    while (castleEnemyMeshes.length > enemyList.length) {
+        var m = castleEnemyMeshes.pop();
+        if (m) scene3d.remove(m);
+    }
+    
+    // Stwórz brakujące meshe
+    while (castleEnemyMeshes.length < enemyList.length) {
+        var color = castleFloor === 0 ? 0x5d4037 : 0x4a148c;
+        var mesh = createSimpleHumanoidMesh(color);
+        scene3d.add(mesh);
+        castleEnemyMeshes.push(mesh);
+    }
+    
+    // Aktualizuj pozycje
+    for (var i = 0; i < enemyList.length; i++) {
+        var e = enemyList[i];
+        if (castleEnemyMeshes[i] && e) {
+            castleEnemyMeshes[i].position.set(e.x, 0, e.y);
+            castleEnemyMeshes[i].visible = true;
+            castleEnemyMeshes[i].lookAt(player.x, 0, player.y);
+        }
     }
 }
 

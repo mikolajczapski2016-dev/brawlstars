@@ -34,9 +34,9 @@ var arenaLevel = parseInt(localStorage.getItem('arenaLevel')) || 1; // Poziom ar
 // === ZAMEK ===
 var castle = null;
 var inCastle = false;
-var castleEnemies = [];
+var bossFloor0 = null;
 var castleFloor = 0;
-var towerEnemies = [];
+var bossFloor1 = null;
 var castleBoss = null;
 var bossDialogShown = false;
 var bossDialogStep = 0;
@@ -152,8 +152,8 @@ function initArena() {
     // Zamek (od poziomu 90)
     inCastle = false;
     castleFloor = 0;
-    castleEnemies = [];
-    towerEnemies = [];
+    bossFloor0 = null;
+    bossFloor1 = null;
     castleBoss = null;
 
     if (arenaLevel >= 90) {
@@ -171,113 +171,61 @@ function initArena() {
             ladderY: ARENA_H / 2 + 80
         };
 
-        // Od poziomu 90 dodaj wrogów i króla w zamku
+        // Od poziomu 90 dodaj 3 bossów w zamku
         if (arenaLevel >= 90) {
-            // Parter - czarodzieje i zombie
             var hpScale = 1 + (arenaLevel - 90) * 0.15;
-            for (var j = 0; j < 3; j++) {
-                var cx = castle.x + 30 + Math.random() * 120;
-                var cy = castle.y + 80 + Math.random() * 100;
-                castleEnemies.push({
-                    x: cx, y: cy, w: 40, h: 50,
-                    hp: 120 * hpScale,
-                    maxHp: 120 * hpScale,
-                    speed: 1.8,
-                    attackCooldown: 0,
-                    dir: Math.random() * Math.PI * 2,
-                    changeDir: 0,
-                    color: '#9c27b0',
-                    hasBow: false,
-                    isWizard: true,
-                    type: 'wizard'
-                });
-            }
-            for (var j = 0; j < 3; j++) {
-                var cx = castle.x + 30 + Math.random() * 120;
-                var cy = castle.y + 80 + Math.random() * 100;
-                castleEnemies.push({
-                    x: cx, y: cy, w: 40, h: 50,
-                    hp: 100 * hpScale,
-                    maxHp: 100 * hpScale,
-                    speed: 2.0,
-                    attackCooldown: 0,
-                    dir: Math.random() * Math.PI * 2,
-                    changeDir: 0,
-                    color: '#aaa',
-                    hasBow: false,
-                    type: 'zombieNormal'
-                });
-            }
-            // Strażnicy też na parterze
-            for (var j = 0; j < 3; j++) {
-                var cx = castle.x + 30 + Math.random() * 120;
-                var cy = castle.y + 80 + Math.random() * 100;
-                castleEnemies.push({
-                    x: cx, y: cy, w: 40, h: 50,
-                    hp: 110 * hpScale,
-                    maxHp: 110 * hpScale,
-                    speed: 1.8,
-                    attackCooldown: 0,
-                    dir: Math.random() * Math.PI * 2,
-                    changeDir: 0,
-                    color: '#5d4037',
-                    hasBow: false,
-                    type: 'guard'
-                });
-            }
 
-            // Piętro 1 - strażnicy i zombie na wieży dolnej
-            for (var k = 0; k < 3; k++) {
-                var tx = castle.towerX + 20 + Math.random() * 40;
-                var ty = castle.towerY + 30 + Math.random() * 50;
-                towerEnemies.push({
-                    x: tx, y: ty, w: 40, h: 50,
-                    hp: 100 * 1.5,
-                    maxHp: 100 * 1.5,
-                    speed: 2.0,
-                    attackCooldown: 0,
-                    dir: Math.random() * Math.PI * 2,
-                    changeDir: 0,
-                    color: '#5d4037',
-                    hasBow: false,
-                    type: 'guard'
-                });
-            }
-            for (var k = 0; k < 4; k++) {
-                var tx = castle.towerX + 20 + Math.random() * 40;
-                var ty = castle.towerY + 30 + Math.random() * 50;
-                towerEnemies.push({
-                    x: tx, y: ty, w: 40, h: 50,
-                    hp: 90 * 1.5,
-                    maxHp: 90 * 1.5,
-                    speed: 2.2,
-                    attackCooldown: 0,
-                    dir: Math.random() * Math.PI * 2,
-                    changeDir: 0,
-                    color: '#aaa',
-                    hasBow: false,
-                    type: 'zombieNormal'
-                });
-            }
+            // Piętro 0 - Sługus (najsłabszy boss)
+            bossFloor0 = {
+                x: castle.x + castle.w / 2,
+                y: castle.y + castle.h / 2,
+                w: 50, h: 65,
+                hp: Math.floor(600 * hpScale),
+                maxHp: Math.floor(600 * hpScale),
+                speed: 0.6,
+                attackCooldown: 0,
+                dir: Math.random() * Math.PI * 2,
+                changeDir: 0,
+                color: '#5d4037',
+                type: 'bossFloor0',
+                name: 'Sługus',
+                damage: 8
+            };
 
-            // Piętro 2 - komnata bossa
+            // Piętro 1 - Generał Zła (średni boss)
+            bossFloor1 = {
+                x: castle.towerX + castle.towerW / 2,
+                y: castle.towerY + castle.towerH / 2,
+                w: 60, h: 75,
+                hp: Math.floor(1500 * hpScale),
+                maxHp: Math.floor(1500 * hpScale),
+                speed: 1.2,
+                attackCooldown: 0,
+                dir: Math.random() * Math.PI * 2,
+                changeDir: 0,
+                color: '#4a148c',
+                type: 'bossFloor1',
+                name: 'Generał Zła',
+                damage: 18
+            };
 
-            // Boss na wieży - zresetuj dialog
+            // Piętro 2 - Król Ciemności (najsilniejszy boss)
             bossDialogShown = false;
             bossDialogStep = 0;
             castleBoss = {
-                x: canvas.width / 2,
-                y: canvas.height / 2 - 50,
-                w: 80,
-                h: 100,
-                hp: 2000,
-                maxHp: 2000,
+                x: castle.towerX + castle.towerW / 2,
+                y: castle.towerY - 60,
+                w: 80, h: 100,
+                hp: Math.floor(2500 * hpScale),
+                maxHp: Math.floor(2500 * hpScale),
                 speed: 0.8,
                 attackCooldown: 0,
                 dir: Math.random() * Math.PI * 2,
                 changeDir: 0,
                 color: '#1a0000',
-                type: 'boss'
+                type: 'boss',
+                name: 'Król Ciemności',
+                damage: 25
             };
 
             // 4 akumulatory zasilające zbroję tylko na poziomie 100
@@ -462,7 +410,7 @@ function startGame() {
     var atkLevel = getUpgradeLevel(1);
     var spdLevel = getUpgradeLevel(2);
 
-    player.maxHp = 100 + (hpLevel - 1) * 20;
+    player.maxHp = (adminSettings.playerHp > 0) ? adminSettings.playerHp : (100 + (hpLevel - 1) * 20);
     player.attackDamage = (adminSettings.playerDamage > 0) ? adminSettings.playerDamage : (20 + (atkLevel - 1) * 5);
     player.speed = 3 + (spdLevel - 1) * 0.4;
 
@@ -485,6 +433,7 @@ function startGame() {
     player.skin = currentSkin;
     player.character = selectedCharacter;
     player.blackHole = null;
+    player.isDashing = false;
 
     gameRunning = true;
     updateSuperBtn();
@@ -586,6 +535,24 @@ function gameLoop() {
         if (phase2Message.timer <= 0) phase2Message = null;
     }
 
+    // === ŚMIERĆ BOSSÓW PIĘTER 0 I 1 ===
+    if (bossFloor0 && bossFloor0.hp <= 0) {
+        for (var p = 0; p < 15; p++) {
+            particles.push({ x: bossFloor0.x, y: bossFloor0.y, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, life: 40, color: '#5d4037' });
+        }
+        coins += 50;
+        updateCoins();
+        bossFloor0 = null;
+    }
+    if (bossFloor1 && bossFloor1.hp <= 0) {
+        for (var p = 0; p < 20; p++) {
+            particles.push({ x: bossFloor1.x, y: bossFloor1.y, vx: (Math.random()-0.5)*10, vy: (Math.random()-0.5)*10, life: 45, color: '#9c27b0' });
+        }
+        coins += 100;
+        updateCoins();
+        bossFloor1 = null;
+    }
+
     // === SPRAWDŹ CZY BOSS ZGINĄŁ (przy normalnej walce - ze zbroją) ===
     if (castleBoss && castleBoss.hp <= 0 && !bossPhase2Started) {
         // Gracz pokonał bossa normalnie (przez zbroję) → napisy końcowe
@@ -649,14 +616,16 @@ function gameLoop() {
         if (enemies.length === 0) {
             // Jeśli jest zamek i poziom >= 90, najpierw przejdź przez zamek
             if (castle && arenaLevel >= 90) {
-                if (!inCastle || castleFloor === 0) {
-                    // Musisz wejść do zamku i pokonać wrogów na parterze
+                if (!inCastle) {
+                    // Musisz wejść do zamku
+                } else if (castleFloor === 0) {
+                    // Musisz pokonać bossa na parterze
                 } else if (castleFloor === 1) {
-                    // Musisz pokonać wrogów na piętrze 1 i wejść na piętro 2
-                } else if (castleFloor === 2 && castleBoss) {
-                    // Musisz pokonać Króla Zombie na piętrze 2
+                    // Musisz pokonać bossa na piętrze 1
+                } else if (castleFloor === 2 && castleBoss && castleBoss.hp > 0) {
+                    // Musisz pokonać Króla Ciemności na piętrze 2
                 } else {
-                    // Pokonano wszystkich wrogów w zamku - boss pokonany!
+                    // Pokonano wszystkich bossów w zamku - wygrana!
                     arenaWon = true;
                 }
             } else {
@@ -714,12 +683,10 @@ function gameLoop() {
         drawArena();
     }
 
-    // Jeśli 3D było aktywne — czyść canvas 2D overlay i rysuj tylko UI + damage texts
-    // ALE nie czyść gdy gracz jest w zamku (tam rysujemy w 2D)
-    if (rendered3D && ctx && canvas && !inCastle) {
+    // Jeśli 3D było aktywne — czyść canvas 2D overlay i rysuj damage texts + UI
+    if (rendered3D && ctx && canvas) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        // Teksty obrażeń (damage texts) — były w drawArena
-        ctx.globalAlpha = 1;
+        // Teksty obrażeń (damage texts)
         for (var i = 0; i < damageTexts.length; i++) {
             var dt = damageTexts[i];
             ctx.globalAlpha = dt.life / 30;

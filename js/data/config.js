@@ -48,5 +48,6 @@ var charColors = {
     'Toksyk': { icon: '🟢', bg: '#66bb6a' },
     'Duszek': { icon: '⚪', bg: '#bdbdbd' },
     'Złotek': { icon: '👑', bg: '#ffd700' },
-    'UltraZombi': { icon: '🧟‍♀️', bg: '#e91e63' }
+    'UltraZombi': { icon: '🧟‍♀️', bg: '#e91e63' },
+    'Czarodziej': { icon: '🔮', bg: '#7b1fa2' }
 };

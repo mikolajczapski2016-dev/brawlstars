@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Open Droid CLI",
+      "type": "shell",
+      "command": "sudo -n -u droid /home/droid/bin/droid",
+      "options": {
+        "cwd": "/home/mikolaj/repos/brawlstars"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true,
+        "showReuseMessage": false
+      },
+      "problemMatcher": []
+    }
+  ]
+}

@@ -85,6 +85,30 @@ function playerAttack() {
 
     player.attackCooldown = char.attackCooldown;
 
+    // Dash / skok - szybki ruch w stronę celu z obrażeniami przy lądowaniu
+    if (char.attackType === 'dash') {
+        var dist = Math.min(Math.sqrt((worldMX - player.x) * (worldMX - player.x) + (worldMY - player.y) * (worldMY - player.y)), char.attackRange);
+        player.isDashing = true;
+        player.dashStartX = player.x;
+        player.dashStartY = player.y;
+        player.dashTargetX = player.x + Math.cos(angle) * dist;
+        player.dashTargetY = player.y + Math.sin(angle) * dist;
+        player.dashTimer = 15;
+        player.dashDuration = 15;
+        player.dashAngle = angle;
+
+        // Cząsteczki startu
+        for (var p = 0; p < 6; p++) {
+            particles.push({
+                x: player.x, y: player.y,
+                vx: Math.cos(angle + (Math.random() - 0.5)) * 3,
+                vy: Math.sin(angle + (Math.random() - 0.5)) * 3,
+                life: 12, color: char.attackColor
+            });
+        }
+        return;
+    }
+
     attacks.push({
         x: player.x, y: player.y, angle: angle,
         dist: 0, maxDist: char.attackRange,
@@ -270,6 +294,52 @@ function updatePlayer() {
     var char = characters[player.character] || characters[Object.keys(characters)[0]];
     if (!char) return;
 
+    // DASH (główny atak Czarodzieja)
+    if (player.isDashing) {
+        player.dashTimer--;
+        var dt = 1 - (player.dashTimer / player.dashDuration);
+        player.x = player.dashStartX + (player.dashTargetX - player.dashStartX) * dt;
+        player.y = player.dashStartY + (player.dashTargetY - player.dashStartY) * dt;
+
+        // Cząsteczki po drodze
+        for (var p = 0; p < 2; p++) {
+            particles.push({
+                x: player.x + (Math.random() - 0.5) * 20,
+                y: player.y + (Math.random() - 0.5) * 20,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                life: 10, color: char.attackColor || '#e040fb'
+            });
+        }
+
+        if (player.dashTimer <= 0) {
+            player.isDashing = false;
+            // Obrażenia przy lądowaniu
+            for (var i = 0; i < enemies.length; i++) {
+                var e = enemies[i];
+                var edx = e.x - player.x, edy = e.y - player.y;
+                if (Math.sqrt(edx*edx + edy*edy) < 50) {
+                    e.hp -= player.attackDamage;
+                    damageTexts.push({ x: e.x, y: e.y - 30, text: '-' + player.attackDamage + ' 🔮', life: 30, color: '#e040fb' });
+                    var ang = Math.atan2(edy, edx);
+                    e.x += Math.cos(ang) * 25;
+                    e.y += Math.sin(ang) * 25;
+                }
+            }
+            // Efekt lądowania
+            for (var p = 0; p < 10; p++) {
+                var a = (p/10) * Math.PI * 2;
+                particles.push({
+                    x: player.x, y: player.y,
+                    vx: Math.cos(a) * 4, vy: Math.sin(a) * 4,
+                    life: 18, color: char.attackColor || '#e040fb'
+                });
+            }
+        }
+        clampPlayerToArena();
+        return;
+    }
+
     if (player.isSupering) {
         // CZARNA DZIURA (Cieniak) - od razu aktywuj bez czekania na progress!
         if (char.superType === 'blackhole') {
@@ -427,73 +497,92 @@ function updatePlayer() {
     for (var i = 0; i < bushes.length; i++) {
         if (rectsOverlap(newX-20, newY-25, 40, 50, bushes[i].x, bushes[i].y, bushes[i].w, bushes[i].h)) blocked = true;
     }
+    // Kolizja z zamkiem (na arenie - nie wchodz w sciany zamku)
+    if (!inCastle && castle) {
+        if (rectsOverlap(newX-20, newY-25, 40, 50, castle.x, castle.y, castle.w, castle.h)) blocked = true;
+    }
 
     // === WEJŚCIE DO ZAMKU ===
     if (!inCastle && castle && castle.doorOpen) {
-        // Sprawdź czy gracz jest przy drzwiach zamku
         var doorX = castle.x + castle.w/2;
         var doorY = castle.y + castle.h;
-        var distToDoor = Math.sqrt((newX - doorX) * (newX - doorX) + (newY - doorY) * (newY - doorY));
-        if (distToDoor < 50 && (keys['w'] || keys['arrowup'])) {
-            // Wejdź do zamku
+        var distToDoor = Math.sqrt((player.x - doorX) * (player.x - doorX) + (player.y - doorY) * (player.y - doorY));
+        if (distToDoor < 150 && (keys['w'] || keys['arrowup'])) {
             inCastle = true;
             castleFloor = 0;
-            player.x = canvas.width/2;
-            player.y = canvas.height - 150;
+            player.x = castle.x + castle.w/2;
+            player.y = castle.y + castle.h - 50;
             return;
         }
     } else if (inCastle) {
         // === LOGIKA WEWNĄTRZ ZAMKU ===
 
         // Wyjście z zamku (na dole)
-        if (player.y > canvas.height - 130 && (keys['s'] || keys['arrowdown'])) {
+        if (player.y > castle.y + castle.h && (keys['s'] || keys['arrowdown'])) {
             inCastle = false;
             player.x = castle.x + castle.w/2;
-            player.y = castle.y + castle.h + 30;
+            player.y = castle.y + castle.h + 50;
             return;
         }
 
-        // Przejście na piętro 1 - tylko jak pokonasz wszystkich na parterze
-        if (castleFloor === 0 && player.y < 100 && (keys['w'] || keys['arrowup'])) {
-            if (castleEnemies && castleEnemies.length > 0) {
-                damageTexts.push({ x: player.x, y: player.y - 60, text: 'Pokonaj wszystkich na parterze!', life: 60, color: '#ff4444' });
-                player.y = 110;
+        // Przejście na piętro 1
+        if (castleFloor === 0 && player.y < castle.y + 50 && (keys['w'] || keys['arrowup'])) {
+            if (bossFloor0 && bossFloor0.hp > 0) {
+                damageTexts.push({ x: player.x, y: player.y - 60, text: 'Pokonaj bossa na parterze!', life: 60, color: '#ff4444' });
+                player.y = castle.y + 60;
                 return;
             }
             castleFloor = 1;
-            player.y = canvas.height - 150;
+            player.x = castle.towerX + castle.towerW/2;
+            player.y = castle.towerY + castle.towerH - 30;
             return;
         }
 
-        // Przejście na piętro 2 (komnata bossa) - tylko jak pokonasz wszystkich na piętrze 1
-        if (castleFloor === 1 && player.y < 100 && (keys['w'] || keys['arrowup'])) {
-            if (towerEnemies && towerEnemies.length > 0) {
-                damageTexts.push({ x: player.x, y: player.y - 60, text: 'Pokonaj wszystkich na piętrze 1!', life: 60, color: '#ff4444' });
-                player.y = 110;
+        // Przejście na piętro 2 (komnata bossa)
+        if (castleFloor === 1 && player.y < castle.towerY + 30 && (keys['w'] || keys['arrowup'])) {
+            if (bossFloor1 && bossFloor1.hp > 0) {
+                damageTexts.push({ x: player.x, y: player.y - 60, text: 'Pokonaj bossa na piętrze 1!', life: 60, color: '#ff4444' });
+                player.y = castle.towerY + 40;
                 return;
             }
             castleFloor = 2;
-            player.y = canvas.height - 150;
+            player.x = castle.towerX + castle.towerW/2;
+            player.y = castle.towerY - 30;
             return;
         }
 
         // Powrót z piętra 2 na piętro 1
-        if (castleFloor === 2 && player.y > canvas.height - 80 && (keys['s'] || keys['arrowdown'])) {
+        if (castleFloor === 2 && player.y > castle.towerY + castle.towerH && (keys['s'] || keys['arrowdown'])) {
             castleFloor = 1;
-            player.y = 100;
+            player.y = castle.towerY + 30;
             return;
         }
 
         // Powrót z piętra 1 na parter
-        if (castleFloor === 1 && player.y > canvas.height - 80 && (keys['s'] || keys['arrowdown'])) {
+        if (castleFloor === 1 && player.y > castle.y + castle.h && (keys['s'] || keys['arrowdown'])) {
             castleFloor = 0;
-            player.y = 100;
+            player.y = castle.y + 50;
             return;
         }
 
-        // Ograniczenia wewnątrz zamku
-        newX = Math.max(50, Math.min(canvas.width - 50, newX));
-        newY = Math.max(50, Math.min(canvas.height - 60, newY));
+        // Ograniczenia wewnątrz zamku (arena coords)
+        var castleLeft = castle.x + 10;
+        var castleRight = castle.x + castle.w - 10;
+        var castleTop = castle.y + 10;
+        var castleBottom = castle.y + castle.h - 10;
+        if (castleFloor === 1) {
+            castleLeft = castle.towerX + 10;
+            castleRight = castle.towerX + castle.towerW - 10;
+            castleTop = castle.towerY + 10;
+            castleBottom = castle.towerY + castle.towerH - 10;
+        } else if (castleFloor === 2) {
+            castleLeft = castle.towerX + 5;
+            castleRight = castle.towerX + castle.towerW - 5;
+            castleTop = castle.towerY - 100;
+            castleBottom = castle.towerY + 20;
+        }
+        newX = Math.max(castleLeft, Math.min(castleRight, newX));
+        newY = Math.max(castleTop, Math.min(castleBottom, newY));
 
         player.x = newX;
         player.y = newY;

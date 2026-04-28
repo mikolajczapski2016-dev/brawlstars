@@ -11,7 +11,8 @@ var adminSettings = JSON.parse(localStorage.getItem('adminSettings')) || {
     version: '1.0',
     maxCoins: 999999999,
     allowCodeChange: false,
-    playerDamage: 0
+    playerDamage: 0,
+    playerHp: 0
 };
 var creatorCodeUsed = false;
 var usedCreatorCodes = JSON.parse(localStorage.getItem('usedCreatorCodes')) || [];
@@ -97,7 +98,8 @@ function startTrainingArena() {
     initArena3D();
 
     player.x = 400; player.y = 400;
-    player.hp = 200; player.maxHp = 200;
+    var trainingHp = (adminSettings.playerHp > 0) ? adminSettings.playerHp : 200;
+    player.hp = trainingHp; player.maxHp = trainingHp;
     player.attackDamage = (adminSettings.playerDamage > 0) ? adminSettings.playerDamage : 25;
     player.superCharge = 100;
     player.superReady = true;
@@ -132,7 +134,8 @@ function startTrainingMatch() {
     // Inicjalizacja 3D
     initArena3D();
 
-    player.hp = 100; player.maxHp = 100;
+    var matchHp = (adminSettings.playerHp > 0) ? adminSettings.playerHp : 100;
+    player.hp = matchHp; player.maxHp = matchHp;
     player.superCharge = 100;
     player.superReady = true;
     player.character = tryCharacterName;
@@ -233,6 +236,7 @@ function renderAdminPanel() {
         '<div style="margin-top:10px;"><label style="color:#aaa;">Wersja:</label> <input type="text" id="versionInput" value="' + adminSettings.version + '" onchange="updateAdminSetting(\'version\', this.value)" style="padding:5px;border-radius:5px;border:1px solid #555;background:#222;color:#fff;width:80px;"></div>' +
         '<div style="margin-top:10px;"><label style="color:#aaa;">Max monet:</label> <input type="number" id="maxCoinsInput" value="' + adminSettings.maxCoins + '" onchange="updateAdminSetting(\'maxCoins\', parseInt(this.value))" style="padding:5px;border-radius:5px;border:1px solid #555;background:#222;color:#fff;width:120px;"></div>' +
         '<div style="margin-top:10px;"><label style="color:#aaa;">Obrażenia gracza:</label> <input type="number" id="playerDamageInput" value="' + adminSettings.playerDamage + '" onchange="updateAdminSetting(\'playerDamage\', parseInt(this.value))" style="padding:5px;border-radius:5px;border:1px solid #555;background:#222;color:#fff;width:80px;"> <span style="color:#888;font-size:12px;">(0 = domyślne z ulepszeń)</span></div>' +
+        '<div style="margin-top:10px;"><label style="color:#aaa;">HP gracza:</label> <input type="number" id="playerHpInput" value="' + adminSettings.playerHp + '" onchange="updateAdminSetting(\'playerHp\', parseInt(this.value))" style="padding:5px;border-radius:5px;border:1px solid #555;background:#222;color:#fff;width:80px;"> <span style="color:#888;font-size:12px;">(0 = domyślne z ulepszeń)</span></div>' +
         '<div style="margin-top:10px;"><button onclick="resetGame()" style="background:#ff5555;color:#fff;border:none;padding:10px 20px;border-radius:5px;cursor:pointer;">🔄 RESETUJ GRĘ</button></div>' +
         '</div>' +
         '<div style="text-align:left;margin-bottom:20px;">' +

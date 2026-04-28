@@ -24,7 +24,7 @@ function startFootball() {
         var hpLevel = getUpgradeLevel(0);
         var atkLevel = getUpgradeLevel(1);
         var spdLevel = getUpgradeLevel(2);
-        player.maxHp = 100 + (hpLevel - 1) * 20;
+        player.maxHp = (adminSettings.playerHp > 0) ? adminSettings.playerHp : (100 + (hpLevel - 1) * 20);
         player.attackDamage = (adminSettings.playerDamage > 0) ? adminSettings.playerDamage : (20 + (atkLevel - 1) * 5);
         player.speed = 3 + (spdLevel - 1) * 0.4;
         player.x = 150;
@@ -39,6 +39,7 @@ function startFootball() {
         player.team = 'player';
         player.respawnTimer = 0;
         player.blackHole = null;
+        player.isDashing = false;
 
         // Piłka na środku
         footballBall = { x: ARENA_W / 2, y: ARENA_H / 2, vx: 0, vy: 0, radius: 15 };

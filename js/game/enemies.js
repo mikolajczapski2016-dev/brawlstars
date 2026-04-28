@@ -357,6 +357,48 @@ function updateEnemies() {
             }
         } else {
             // AI
+            // Czarodziej w trakcie skoku (dash) - leci szybko w stronę gracza
+            if (e.isWizard && e.isJumping) {
+                e.jumpTimer--;
+                var jdx = e.jumpTargetX - e.x;
+                var jdy = e.jumpTargetY - e.y;
+                var jdist = Math.sqrt(jdx*jdx + jdy*jdy);
+                if (jdist > 5 && e.jumpTimer > 0) {
+                    e.x += (jdx / jdist) * e.jumpSpeed;
+                    e.y += (jdy / jdist) * e.jumpSpeed;
+                    // Fioletowe cząsteczki po drodze
+                    for (var jp = 0; jp < 2; jp++) {
+                        particles.push({
+                            x: e.x + (Math.random() - 0.5) * 20,
+                            y: e.y + (Math.random() - 0.5) * 20,
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: (Math.random() - 0.5) * 2,
+                            life: 8, color: '#e040fb'
+                        });
+                    }
+                } else {
+                    // Koniec skoku - obrażenia w promieniu
+                    e.isJumping = false;
+                    var distToPlayer = Math.sqrt((player.x - e.x)*(player.x - e.x) + (player.y - e.y)*(player.y - e.y));
+                    if (distToPlayer < 50) {
+                        player.hp -= 15;
+                        damageTexts.push({ x: player.x, y: player.y - 30, text: '-15', life: 30, color: '#ff4444' });
+                        // Lekki odrzut gracza
+                        var pAng = Math.atan2(player.y - e.y, player.x - e.x);
+                        player.x += Math.cos(pAng) * 15;
+                        player.y += Math.sin(pAng) * 15;
+                    }
+                    // Efekt lądowania
+                    for (var jp = 0; jp < 8; jp++) {
+                        var ja = (jp/8) * Math.PI * 2;
+                        particles.push({
+                            x: e.x, y: e.y,
+                            vx: Math.cos(ja) * 3, vy: Math.sin(ja) * 3,
+                            life: 14, color: '#e040fb'
+                        });
+                    }
+                }
+            } else {
             e.changeDir--;
             if (e.changeDir <= 0 || dist < 200) {
                 if (dist < 300) {
@@ -394,6 +436,12 @@ function updateEnemies() {
                     eBlocked = true;
                 }
             }
+            // Kolizja z zamkiem (wrogowie nie wchodza do zamku z zewnatrz)
+            if (castle && !inCastle) {
+                if (rectsOverlap(newEX-20, newEY-25, 40, 50, castle.x, castle.y, castle.w, castle.h)) {
+                    eBlocked = true;
+                }
+            }
             // Kolizja z graczem - nie wchodzi w postac
             if (rectsOverlap(newEX-20, newEY-25, 40, 50, player.x-20, player.y-25, 40, 50)) {
                 eBlocked = true;
@@ -403,6 +451,7 @@ function updateEnemies() {
                 e.y = Math.max(25, Math.min(ARENA_H - 25, newEY));
             } else {
                 e.dir += Math.PI/2;
+            }
             }
         }
 
@@ -449,36 +498,30 @@ function updateEnemies() {
             }
         }
 
-        // Atak - czarodzieje rzucają pioruny, łucznicy strzelają z łuku, reszta melee
+        // Atak - czarodzieje skaczą (dash), łucznicy strzelają z łuku, reszta melee
         if (e.isWizard) {
-            // Czarodziej - rzuca piorunami z dystansu
-            if (dist < 400) {
-                e.attackCooldown--;
-                if (e.attackCooldown <= 0) {
-                    var angle = Math.atan2(player.y - e.y, player.x - e.x);
-                    attacks.push({
-                        x: e.x,
-                        y: e.y - 20,
-                        angle: angle,
-                        dist: 0,
-                        damage: 15,
-                        life: 40,
-                        type: 'lightning',
-                        speed: 15
+            // Czarodziej - skacze w stronę gracza (dash)
+            if (e.isJumping) {
+                // Skok obsługiwany w sekcji ruchu AI powyżej
+            } else if (dist < 250 && e.attackCooldown <= 0) {
+                // Rozpocznij skok
+                e.isJumping = true;
+                e.jumpTimer = 30;
+                e.jumpTargetX = player.x;
+                e.jumpTargetY = player.y;
+                e.jumpSpeed = 7;
+                e.attackCooldown = 120;
+                // Efekt startu skoku
+                for (var p = 0; p < 5; p++) {
+                    particles.push({
+                        x: e.x, y: e.y - 20,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: (Math.random() - 0.5) * 4,
+                        life: 10, color: '#e040fb'
                     });
-                    // Efekt cząsteczek pioruna
-                    for (var p = 0; p < 8; p++) {
-                        particles.push({
-                            x: e.x,
-                            y: e.y - 20,
-                            vx: (Math.random() - 0.5) * 6,
-                            vy: (Math.random() - 0.5) * 6,
-                            life: 15,
-                            color: '#e040fb'
-                        });
-                    }
-                    e.attackCooldown = 70;
                 }
+            } else {
+                e.attackCooldown--;
             }
         } else if (e.hasBow) {
             // Zatrzymaj się i strzelaj z dystansu
@@ -520,132 +563,91 @@ function updateEnemies() {
     }
     } // koniec if (!inCastle)
 
-    // === AKTUALIZACJA WROGÓW W ZAMKU ===
-    // W zamku: piętro 0 = castleEnemies (parter), piętro 1 = towerEnemies, piętro 2 = boss
-    if (inCastle && castleFloor < 2) {
-        var enemyList = castleFloor === 0 ? castleEnemies : towerEnemies;
+    // === AKTUALIZACJA BOSSÓW W ZAMKU ===
+    // Każde piętro ma swojego bossa!
+    if (inCastle && castleFloor === 0 && bossFloor0 && bossFloor0.hp > 0) {
+        var b0 = bossFloor0;
+        var dx = player.x - b0.x;
+        var dy = player.y - b0.y;
+        var bdist = Math.sqrt(dx*dx + dy*dy);
 
-        for (var i = enemyList.length - 1; i >= 0; i--) {
-            var e = enemyList[i];
-
-            // Śmierć
-            if (e.hp <= 0) {
-                for (var p = 0; p < 8; p++) {
-                    particles.push({
-                        x: e.x, y: e.y,
-                        vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5,
-                        life: 25, color: e.color
-                    });
-                }
-                coins += 25;
-                updateCoins();
-                enemyList.splice(i, 1);
-                continue;
-            }
-
-            // AI - dąż do gracza
-            var dx = player.x - e.x;
-            var dy = player.y - e.y;
-            var dist = Math.sqrt(dx*dx + dy*dy);
-
-            e.changeDir--;
-            if (e.changeDir <= 0 || dist < 200) {
-                if (dist < 300) {
-                    e.dir = Math.atan2(dy, dx);
-                } else {
-                    e.dir = Math.random() * Math.PI * 2;
-                }
-                e.changeDir = 60 + Math.random() * 60;
-            }
-
-            var eSpd = e.speed;
-            if (e.slowTimer && e.slowTimer > 0) { eSpd *= 0.4; e.slowTimer--; }
-            if (e.stunTimer && e.stunTimer > 0) { eSpd = 0; e.stunTimer--; }
-
-            var newEX = e.x + Math.cos(e.dir) * eSpd;
-            var newEY = e.y + Math.sin(e.dir) * eSpd;
-
-            // Ograniczenia wewnątrz zamku
-            newEX = Math.max(50, Math.min(canvas.width - 50, newEX));
-            newEY = Math.max(100, Math.min(canvas.height - 120, newEY));
-
-            e.x = newEX;
-            e.y = newEY;
-
-            // Atak - czarodzieje rzucają pioruny, reszta melee
-            if (e.isWizard) {
-                // Czarodziej - rzuca piorunami z dystansu
-                if (dist < 400) {
-                    e.attackCooldown--;
-                    if (e.attackCooldown <= 0) {
-                        var angle = Math.atan2(player.y - e.y, player.x - e.x);
-                        attacks.push({
-                            x: e.x,
-                            y: e.y - 20,
-                            angle: angle,
-                            dist: 0,
-                            damage: 15,
-                            life: 40,
-                            type: 'lightning',
-                            speed: 15
-                        });
-                        // Efekt cząsteczek pioruna
-                        for (var p = 0; p < 8; p++) {
-                            particles.push({
-                                x: e.x,
-                                y: e.y - 20,
-                                vx: (Math.random() - 0.5) * 6,
-                                vy: (Math.random() - 0.5) * 6,
-                                life: 15,
-                                color: '#e040fb'
-                            });
-                        }
-                        e.attackCooldown = 70;
-                    }
-                }
-            } else {
-                // Melee atak
-                if (dist < 65) {
-                    e.attackCooldown--;
-                    if (e.attackCooldown <= 0) {
-                        player.hp -= 12;
-                        damageTexts.push({ x: player.x, y: player.y - 30, text: '-12', life: 30, color: '#ff4444' });
-                        e.attackCooldown = 40;
-                    }
-                }
-            }
+        b0.changeDir--;
+        if (b0.changeDir <= 0 || bdist < 300) {
+            b0.dir = Math.atan2(dy, dx);
+            b0.changeDir = 60;
         }
 
-        // === AKTUALIZACJA BOSS ===
-        // Boss jest na piętrze 2 (komnata króla zombie)
-        if (castleBoss && castleFloor === 2) {
-            var b = castleBoss;
-            var dx = player.x - b.x;
-            var dy = player.y - b.y;
-            var bdist = Math.sqrt(dx*dx + dy*dy);
+        var newBX = b0.x + Math.cos(b0.dir) * b0.speed;
+        var newBY = b0.y + Math.sin(b0.dir) * b0.speed;
+        newBX = Math.max(castle.x + 20, Math.min(castle.x + castle.w - 20, newBX));
+        newBY = Math.max(castle.y + 20, Math.min(castle.y + castle.h - 20, newBY));
+        b0.x = newBX;
+        b0.y = newBY;
 
-            // Boss powoli podchodzi do gracza
-            b.changeDir--;
-            if (b.changeDir <= 0 || bdist < 300) {
-                b.dir = Math.atan2(dy, dx);
-                b.changeDir = 60;
+        if (bdist < 70) {
+            b0.attackCooldown--;
+            if (b0.attackCooldown <= 0) {
+                player.hp -= b0.damage;
+                damageTexts.push({ x: player.x, y: player.y - 30, text: '-' + b0.damage + ' 🛡️', life: 30, color: '#ff4444' });
+                b0.attackCooldown = 45;
             }
+        }
+    }
 
-            var newBX = b.x + Math.cos(b.dir) * b.speed;
-            var newBY = b.y + Math.sin(b.dir) * b.speed;
-            newBX = Math.max(100, Math.min(canvas.width - 100, newBX));
-            newBY = Math.max(150, Math.min(canvas.height - 150, newBY));
-            b.x = newBX;
-            b.y = newBY;
+    if (inCastle && castleFloor === 1 && bossFloor1 && bossFloor1.hp > 0) {
+        var b1 = bossFloor1;
+        var dx = player.x - b1.x;
+        var dy = player.y - b1.y;
+        var bdist = Math.sqrt(dx*dx + dy*dy);
 
-            // Boss atakuje
-            if (bdist < 80) {
-                b.attackCooldown--;
-                if (b.attackCooldown <= 0) {
-                    player.hp -= 25;
-                    damageTexts.push({ x: player.x, y: player.y - 30, text: '-25 👑', life: 30, color: '#ff0000' });
-                    b.attackCooldown = 50;
-                }
+        b1.changeDir--;
+        if (b1.changeDir <= 0 || bdist < 300) {
+            b1.dir = Math.atan2(dy, dx);
+            b1.changeDir = 60;
+        }
+
+        var newBX = b1.x + Math.cos(b1.dir) * b1.speed;
+        var newBY = b1.y + Math.sin(b1.dir) * b1.speed;
+        newBX = Math.max(castle.towerX + 10, Math.min(castle.towerX + castle.towerW - 10, newBX));
+        newBY = Math.max(castle.towerY + 10, Math.min(castle.towerY + castle.towerH - 10, newBY));
+        b1.x = newBX;
+        b1.y = newBY;
+
+        if (bdist < 75) {
+            b1.attackCooldown--;
+            if (b1.attackCooldown <= 0) {
+                player.hp -= b1.damage;
+                damageTexts.push({ x: player.x, y: player.y - 30, text: '-' + b1.damage + ' ⚔️', life: 30, color: '#ff4444' });
+                b1.attackCooldown = 40;
+            }
+        }
+    }
+
+    if (inCastle && castleFloor === 2 && castleBoss && castleBoss.hp > 0) {
+        var b = castleBoss;
+        var dx = player.x - b.x;
+        var dy = player.y - b.y;
+        var bdist = Math.sqrt(dx*dx + dy*dy);
+
+        b.changeDir--;
+        if (b.changeDir <= 0 || bdist < 300) {
+            b.dir = Math.atan2(dy, dx);
+            b.changeDir = 60;
+        }
+
+        var newBX = b.x + Math.cos(b.dir) * b.speed;
+        var newBY = b.y + Math.sin(b.dir) * b.speed;
+        newBX = Math.max(100, Math.min(canvas.width - 100, newBX));
+        newBY = Math.max(150, Math.min(canvas.height - 150, newBY));
+        b.x = newBX;
+        b.y = newBY;
+
+        if (bdist < 80) {
+            b.attackCooldown--;
+            if (b.attackCooldown <= 0) {
+                player.hp -= b.damage;
+                damageTexts.push({ x: player.x, y: player.y - 30, text: '-' + b.damage + ' 👑', life: 30, color: '#ff0000' });
+                b.attackCooldown = 50;
             }
         }
     }

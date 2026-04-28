@@ -292,6 +292,104 @@ function drawBoss(x, y) {
     ctx.fillText(castleBoss && castleBoss.phase2 ? '💀 KRÓL ZOMBIE - FAZA 2' : '👑 KRÓL ZOMBIE', x, y - (bossHasArmor ? 140 : 110));
 }
 
+function drawBossFloor0(x, y) {
+    // Sługus - mały, brązowy sługa
+    var time = Date.now() / 1000;
+    var bounce = Math.sin(time * 3) * 3;
+
+    // Poświata
+    var gradient = ctx.createRadialGradient(x, y, 10, x, y, 50);
+    gradient.addColorStop(0, 'rgba(93, 64, 55, 0.5)');
+    gradient.addColorStop(1, 'rgba(93, 64, 55, 0)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(x, y, 50, 0, Math.PI*2);
+    ctx.fill();
+
+    // Ciało
+    ctx.fillStyle = '#5d4037';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 20 + bounce, 25, 30, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // Głowa
+    ctx.fillStyle = '#6d4c41';
+    ctx.beginPath();
+    ctx.arc(x, y - 5 + bounce, 20, 0, Math.PI*2);
+    ctx.fill();
+
+    // Oczy
+    ctx.fillStyle = '#ffcc80';
+    ctx.beginPath();
+    ctx.arc(x - 7, y - 8 + bounce, 5, 0, Math.PI*2);
+    ctx.arc(x + 7, y - 8 + bounce, 5, 0, Math.PI*2);
+    ctx.fill();
+
+    // Usta
+    ctx.fillStyle = '#3e2723';
+    ctx.beginPath();
+    ctx.ellipse(x, y + 2 + bounce, 8, 4, 0, 0, Math.PI);
+    ctx.fill();
+}
+
+function drawBossFloor1(x, y) {
+    // Generał Zła - fioletowy, większy
+    var time = Date.now() / 1000;
+    var pulse = Math.sin(time * 4) * 4;
+
+    // Poświata
+    var gradient = ctx.createRadialGradient(x, y, 15, x, y, 70 + pulse);
+    gradient.addColorStop(0, 'rgba(74, 20, 140, 0.5)');
+    gradient.addColorStop(1, 'rgba(74, 20, 140, 0)');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(x, y, 70 + pulse, 0, Math.PI*2);
+    ctx.fill();
+
+    // Płaszcz
+    ctx.fillStyle = '#4a148c';
+    ctx.beginPath();
+    ctx.moveTo(x - 30, y + 35);
+    ctx.lineTo(x - 35, y - 20);
+    ctx.lineTo(x + 35, y - 20);
+    ctx.lineTo(x + 30, y + 35);
+    ctx.closePath();
+    ctx.fill();
+
+    // Głowa
+    ctx.fillStyle = '#311b92';
+    ctx.beginPath();
+    ctx.arc(x, y - 15, 28, 0, Math.PI*2);
+    ctx.fill();
+
+    // Hełm/rogi
+    ctx.fillStyle = '#7c4dff';
+    ctx.beginPath();
+    ctx.moveTo(x - 25, y - 30);
+    ctx.lineTo(x - 15, y - 55);
+    ctx.lineTo(x - 5, y - 35);
+    ctx.lineTo(x + 5, y - 35);
+    ctx.lineTo(x + 15, y - 55);
+    ctx.lineTo(x + 25, y - 30);
+    ctx.closePath();
+    ctx.fill();
+
+    // Oczy
+    ctx.fillStyle = '#ff1744';
+    ctx.beginPath();
+    ctx.arc(x - 10, y - 18, 7, 0, Math.PI*2);
+    ctx.arc(x + 10, y - 18, 7, 0, Math.PI*2);
+    ctx.fill();
+
+    // Miecz
+    ctx.strokeStyle = '#b39ddb';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(x + 35, y + 10);
+    ctx.lineTo(x + 55, y - 30);
+    ctx.stroke();
+}
+
 function drawAccumulators() {
     if (!accumulators || accumulators.length === 0) return;
     var now = Date.now() / 1000;
@@ -476,12 +574,23 @@ function drawArena() {
             ctx.fillText('🏰 ZAMEK - PARTER', canvas.width/2, 50);
             ctx.fillStyle = '#fff';
             ctx.font = '14px Arial';
-            ctx.fillText('Zniszcz wszystkich wrogów aby wejść na piętro 1!', canvas.width/2, 80);
+            ctx.fillText('Pokonaj bossa aby wejść na piętro 1!', canvas.width/2, 80);
             ctx.fillText('⬆ SCHODY NA PIĘTRO 1', canvas.width/2, canvas.height - 40);
 
-            // Rysuj wrogów w zamku
-            for (var i = 0; i < castleEnemies.length; i++) {
-                drawEnemy(castleEnemies[i]);
+            // Boss piętra 0 - Sługus
+            if (bossFloor0 && bossFloor0.hp > 0) {
+                drawBossFloor0(bossFloor0.x, bossFloor0.y);
+                // Pasek HP
+                var hpW = 100;
+                ctx.fillStyle = '#333';
+                ctx.fillRect(bossFloor0.x - hpW/2, bossFloor0.y - 60, hpW, 10);
+                ctx.fillStyle = '#ff5722';
+                ctx.fillRect(bossFloor0.x - hpW/2, bossFloor0.y - 60, hpW * (bossFloor0.hp / bossFloor0.maxHp), 10);
+                // Nazwa
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('🛡️ Sługus', bossFloor0.x, bossFloor0.y - 65);
             }
 
             // Wyjście z zamku
@@ -491,19 +600,30 @@ function drawArena() {
             ctx.fillText('⬇ WYJDŹ Z ZAMKU', canvas.width/2, canvas.height - 150);
 
         } else if (castleFloor === 1) {
-            // Piętro 1 - strażnicy i zombie
+            // Piętro 1 - Generał Zła
             ctx.fillStyle = '#5d4037';
             ctx.font = 'bold 20px Arial';
             ctx.textAlign = 'center';
             ctx.fillText('🏰 ZAMEK - PIĘTRO 1', canvas.width/2, 50);
             ctx.fillStyle = '#fff';
             ctx.font = '14px Arial';
-            ctx.fillText('Pokonaj wrogów aby wejść do komnaty bossa!', canvas.width/2, 80);
+            ctx.fillText('Pokonaj bossa aby wejść do komnaty króla!', canvas.width/2, 80);
             ctx.fillText('⬆ SCHODY NA PIĘTRO 2', canvas.width/2, canvas.height - 40);
 
-            // Rysuj wrogów na piętrze 1
-            for (var i = 0; i < towerEnemies.length; i++) {
-                drawEnemy(towerEnemies[i]);
+            // Boss piętra 1 - Generał Zła
+            if (bossFloor1 && bossFloor1.hp > 0) {
+                drawBossFloor1(bossFloor1.x, bossFloor1.y);
+                // Pasek HP
+                var hpW = 120;
+                ctx.fillStyle = '#333';
+                ctx.fillRect(bossFloor1.x - hpW/2, bossFloor1.y - 65, hpW, 10);
+                ctx.fillStyle = '#9c27b0';
+                ctx.fillRect(bossFloor1.x - hpW/2, bossFloor1.y - 65, hpW * (bossFloor1.hp / bossFloor1.maxHp), 10);
+                // Nazwa
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('⚔️ Generał Zła', bossFloor1.x, bossFloor1.y - 70);
             }
 
             // Powrót na parter
@@ -1038,6 +1158,7 @@ function drawPlayer() {
     else if (gameChar.skinFamily === 'zlotek') drawZlotekInGame(px, py, player.skin);
     else if (gameChar.skinFamily === 'toksyk') drawToksykInGame(px, py, player.skin);
     else if (gameChar.skinFamily === 'duszek') drawDuszekInGame(px, py, player.skin);
+    else if (gameChar.skinFamily === 'czarodziej') drawCzarodziejInGame(px, py, player.skin);
     else drawNoobekInGame(px, py, player.skin, player.character);
 
     // HP bar nad glowa
@@ -1337,12 +1458,10 @@ function drawEnemyHpBars3DOverlay() {
     }
 
     if (inCastle) {
-        var roomEnemies = castleFloor === 0 ? castleEnemies : towerEnemies;
-        for (var ci = 0; ci < roomEnemies.length; ci++) {
-            var ce = roomEnemies[ci];
-            if (!ce || ce.hp <= 0) continue;
-            var cRatio = Math.max(0, Math.min(1, ce.hp / ce.maxHp));
-            drawHpBarAtScreen(ce.x, ce.y - 30, cRatio);
+        var roomBoss = castleFloor === 0 ? bossFloor0 : (castleFloor === 1 ? bossFloor1 : null);
+        if (roomBoss && roomBoss.hp > 0) {
+            var cRatio = Math.max(0, Math.min(1, roomBoss.hp / roomBoss.maxHp));
+            drawHpBarAtScreen(roomBoss.x, roomBoss.y - 50, cRatio);
         }
     }
 }

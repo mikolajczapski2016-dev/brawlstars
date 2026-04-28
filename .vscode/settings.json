@@ -1,0 +1,6 @@
+{
+  "task.allowAutomaticTasks": "on",
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.defaultLocation": "editor",
+  "workbench.startupEditor": "none"
+}

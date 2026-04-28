@@ -998,3 +998,96 @@ function drawLobbyMagmak(ctx, px, py, skinId) {
     ctx.fillRect(px + 20, py - 8, 6, 14);
     drawGraveDirt(ctx, px, py);
 }
+
+function drawLobbyCzarodziej(ctx, px, py, skinId) {
+    var time = Date.now() / 1000;
+    var bounce = Math.sin(time * 3) * 4;
+
+    // Cień
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(px, py + 32, 16, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Nogi
+    ctx.fillStyle = '#4a148c';
+    ctx.fillRect(px - 9, py + 12, 7, 20);
+    ctx.fillRect(px + 2, py + 12, 7, 20);
+
+    // Buty
+    ctx.fillStyle = '#311b92';
+    ctx.fillRect(px - 11, py + 30, 9, 4);
+    ctx.fillRect(px + 2, py + 30, 9, 4);
+
+    // Szata
+    ctx.fillStyle = '#7b1fa2';
+    ctx.beginPath();
+    ctx.moveTo(px - 14, py + 14);
+    ctx.lineTo(px + 14, py + 14);
+    ctx.lineTo(px + 10, py - 10 + bounce);
+    ctx.lineTo(px - 10, py - 10 + bounce);
+    ctx.closePath();
+    ctx.fill();
+
+    // Rękawy
+    ctx.fillStyle = '#6a1b9a';
+    ctx.fillRect(px - 18, py - 5 + bounce, 8, 14);
+    ctx.fillRect(px + 10, py - 5 + bounce, 8, 14);
+
+    // Ręce
+    ctx.fillStyle = '#e1bee7';
+    ctx.beginPath();
+    ctx.arc(px - 15, py + 9 + bounce, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(px + 15, py + 9 + bounce, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Kostka w prawej ręce
+    ctx.fillStyle = '#e040fb';
+    ctx.fillRect(px + 12, py + 5 + bounce, 6, 6);
+
+    // Głowa
+    ctx.fillStyle = '#e1bee7';
+    ctx.beginPath();
+    ctx.arc(px, py - 16 + bounce, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Oczy
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(px - 3, py - 18 + bounce, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(px + 3, py - 18 + bounce, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#4a148c';
+    ctx.beginPath();
+    ctx.arc(px - 3, py - 18 + bounce, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(px + 3, py - 18 + bounce, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Kapelusz
+    ctx.fillStyle = '#4a148c';
+    ctx.beginPath();
+    ctx.moveTo(px - 16, py - 22 + bounce);
+    ctx.lineTo(px + 16, py - 22 + bounce);
+    ctx.lineTo(px, py - 40 + bounce);
+    ctx.closePath();
+    ctx.fill();
+
+    // Pasek na kapeluszu
+    ctx.fillStyle = '#e040fb';
+    ctx.fillRect(px - 12, py - 25 + bounce, 24, 3);
+
+    // Broda
+    ctx.fillStyle = '#ce93d8';
+    ctx.beginPath();
+    ctx.moveTo(px - 5, py - 10 + bounce);
+    ctx.lineTo(px + 5, py - 10 + bounce);
+    ctx.lineTo(px, py - 3 + bounce);
+    ctx.closePath();
+    ctx.fill();
+}

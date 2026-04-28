@@ -381,6 +381,7 @@ function drawPreviewCharacter() {
     else if (previewChar.skinFamily === 'zlotek') drawLobbyZlotek(ctx, px, py, currentSkin);
     else if (previewChar.skinFamily === 'toksyk') drawLobbyToksyk(ctx, px, py, currentSkin);
     else if (previewChar.skinFamily === 'duszek') drawLobbyDuszek(ctx, px, py, currentSkin);
+    else if (previewChar.skinFamily === 'czarodziej') drawLobbyCzarodziej(ctx, px, py, currentSkin);
     else drawLobbyNoobek(ctx, px, py, currentSkin);
 
     ctx.restore();
@@ -457,6 +458,7 @@ function drawLobbyCharacter() {
     else if (lobbyChar.skinFamily === 'zlotek') drawLobbyZlotek(ctx, px, py, currentSkin);
     else if (lobbyChar.skinFamily === 'toksyk') drawLobbyToksyk(ctx, px, py, currentSkin);
     else if (lobbyChar.skinFamily === 'duszek') drawLobbyDuszek(ctx, px, py, currentSkin);
+    else if (lobbyChar.skinFamily === 'czarodziej') drawLobbyCzarodziej(ctx, px, py, currentSkin);
     else drawLobbyNoobek(ctx, px, py, currentSkin);
 
     ctx.restore();
