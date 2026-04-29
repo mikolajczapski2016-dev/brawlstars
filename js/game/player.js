@@ -3,63 +3,71 @@
 // === AKTUALIZACJA PRZYCISKU SUPER ===
 function updateSuperBtn() {
     var btn = document.getElementById('superBtn');
+    var mobileBtn = document.getElementById('superMobileBtn');
     var char = characters[player.character] || characters[Object.keys(characters)[0]];
     if (!char) return;
 
-    // Cieniak - pokaz "RZUĆ" gdy gotowy do rzucenia czarnej dziury
+    var label = 'SUPER';
+    var bg = 'rgba(100, 100, 100, 0.6)';
+    var border = '#555';
+    var color = '#fff';
+    var shadow = 'none';
+    var usable = false;
+
     if (char.superType === 'throwblackhole') {
         if (player.superReady) {
-            btn.style.background = 'radial-gradient(circle, #ff4444, #cc0000)';
-            btn.style.borderColor = '#ff0000';
-            btn.style.color = '#fff';
-            btn.style.boxShadow = '0 0 25px rgba(255, 0, 0, 0.8)';
-            btn.textContent = '🌑 RZUĆ!';
+            label = '🌑 RZUĆ!';
+            bg = 'radial-gradient(circle, #ff4444, #cc0000)';
+            border = '#ff0000';
+            shadow = '0 0 25px rgba(255, 0, 0, 0.8)';
+            usable = true;
         } else if (player.superCharge >= 100) {
-            btn.style.background = 'radial-gradient(circle, #9c27b0, #4a148c)';
-            btn.style.borderColor = '#9c27b0';
-            btn.style.color = '#fff';
-            btn.style.boxShadow = '0 0 20px rgba(156, 39, 176, 0.8)';
-            btn.textContent = '🌑 CELUJ';
+            label = '🌑 CELUJ';
+            bg = 'radial-gradient(circle, #9c27b0, #4a148c)';
+            border = '#9c27b0';
+            shadow = '0 0 20px rgba(156, 39, 176, 0.8)';
+            usable = true;
         }
-        return;
-    }
-
-    // Magmak - pokaz "LAWA" dla strefy lawy
-    if (char.superType === 'lava') {
+    } else if (char.superType === 'lava') {
         if (player.superReady) {
-            btn.style.background = 'radial-gradient(circle, #ff5722, #bf360c)';
-            btn.style.borderColor = '#ff5722';
-            btn.style.color = '#fff';
-            btn.style.boxShadow = '0 0 25px rgba(255, 87, 34, 0.8)';
-            btn.textContent = '🔥 LAVA!';
+            label = '🔥 LAVA!';
+            bg = 'radial-gradient(circle, #ff5722, #bf360c)';
+            border = '#ff5722';
+            shadow = '0 0 25px rgba(255, 87, 34, 0.8)';
+            usable = true;
         } else if (player.superCharge >= 100) {
-            btn.style.background = 'radial-gradient(circle, #ff9800, #e65100)';
-            btn.style.borderColor = '#ff9800';
-            btn.style.color = '#fff';
-            btn.style.boxShadow = '0 0 20px rgba(255, 152, 0, 0.8)';
-            btn.textContent = '🔥 CELUJ';
+            label = '🔥 CELUJ';
+            bg = 'radial-gradient(circle, #ff9800, #e65100)';
+            border = '#ff9800';
+            shadow = '0 0 20px rgba(255, 152, 0, 0.8)';
+            usable = true;
         }
-        return;
+    } else {
+        if (player.superReady) {
+            label = 'CELUJ!';
+            bg = 'radial-gradient(circle, #ff4444, #cc0000)';
+            border = '#ff0000';
+            shadow = '0 0 25px rgba(255, 0, 0, 0.8)';
+            usable = true;
+        } else if (player.superCharge >= 100) {
+            bg = 'radial-gradient(circle, #ffff00, #ff9800)';
+            border = '#ffff00';
+            color = '#000';
+            shadow = '0 0 20px rgba(255, 255, 0, 0.6)';
+            usable = true;
+        }
     }
 
-    if (player.superReady) {
-        btn.style.background = 'radial-gradient(circle, #ff4444, #cc0000)';
-        btn.style.borderColor = '#ff0000';
-        btn.style.color = '#fff';
-        btn.style.boxShadow = '0 0 25px rgba(255, 0, 0, 0.8)';
-        btn.textContent = 'CELUJ!';
-    } else if (player.superCharge >= 100) {
-        btn.style.background = 'radial-gradient(circle, #ffff00, #ff9800)';
-        btn.style.borderColor = '#ffff00';
-        btn.style.color = '#000';
-        btn.style.boxShadow = '0 0 20px rgba(255, 255, 0, 0.6)';
-        btn.textContent = 'SUPER';
-    } else {
-        btn.style.background = 'rgba(100, 100, 100, 0.6)';
-        btn.style.borderColor = '#555';
-        btn.style.color = '#fff';
-        btn.style.boxShadow = 'none';
-        btn.textContent = 'SUPER';
+    if (btn) {
+        btn.style.background = bg;
+        btn.style.borderColor = border;
+        btn.style.color = color;
+        btn.style.boxShadow = shadow;
+        btn.textContent = label;
+    }
+    if (mobileBtn) {
+        mobileBtn.disabled = !usable;
+        mobileBtn.textContent = usable ? label : (player.superCharge > 0 ? Math.floor(player.superCharge) + '%' : 'SUPER');
     }
 }
 
@@ -484,7 +492,12 @@ function updatePlayer() {
     if (keys['s'] || keys['arrowdown']) my = 1;
     if (keys['a'] || keys['arrowleft']) mx = -1;
     if (keys['d'] || keys['arrowright']) mx = 1;
-    if (mx !== 0 && my !== 0) { mx *= 0.707; my *= 0.707; }
+    var usingMobileMove = typeof mobileMove !== 'undefined' && mobileMove.active;
+    if (usingMobileMove) {
+        mx = mobileMove.x;
+        my = mobileMove.y;
+    }
+    if (!usingMobileMove && mx !== 0 && my !== 0) { mx *= 0.707; my *= 0.707; }
 
     var newX = player.x + mx * player.speed;
     var newY = player.y + my * player.speed;

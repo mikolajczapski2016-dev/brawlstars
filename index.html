@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <title>Zombie Story – darmowa gra online</title>
     <meta name="description" content="Zombie Story – gra online inspirowana Brawl Stars. Walcz z zombie, zdobywaj puchary i odblokowuj postacie!">
     <meta name="keywords" content="zombie story, gra online, brawl stars, gra przeglądarkowa, zombie, darmowa gra">
@@ -267,10 +267,11 @@
     </div>
     <!-- Kontrolki mobilne -->
     <div id="mobileControls">
-        <div id="joystickArea">
+        <div id="joystickArea" aria-label="Joystick ruchu">
             <div id="joystickKnob"></div>
         </div>
-        <div id="fireBtn">🔥</div>
+        <button id="fireBtn" class="mobile-action-btn" type="button" aria-label="Atak">🔥</button>
+        <button id="superMobileBtn" class="mobile-action-btn" type="button" aria-label="Super">SUPER</button>
     </div>
 </div>
 
@@ -316,7 +317,9 @@
     };
 
     window.addEventListener('resize', function() {
-        if (canvas) {
+        if (typeof resizeArenaCanvas === 'function') {
+            resizeArenaCanvas();
+        } else if (canvas) {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }

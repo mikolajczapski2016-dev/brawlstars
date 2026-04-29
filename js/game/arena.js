@@ -4,6 +4,8 @@ var canvas, ctx;
 var gameRunning = false;
 var keys = {};
 var mouse = { x: 0, y: 0 };
+var mobileMove = { x: 0, y: 0, active: false };
+var mobileAim = { x: 0, y: 0, active: false };
 
 var player = {
     x: 400, y: 400,
@@ -393,6 +395,15 @@ function getUpgradeLevel(index) {
     return upgrades[index] || 1;
 }
 
+function resizeArenaCanvas() {
+    if (!canvas) return;
+    var gameScreen = document.getElementById('gameScreen');
+    var width = (gameScreen && gameScreen.clientWidth) || window.innerWidth;
+    var height = (gameScreen && gameScreen.clientHeight) || window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+}
+
 function startGame() {
   try {
     document.getElementById('lobby').style.display = 'none';
@@ -400,8 +411,7 @@ function startGame() {
     document.getElementById('superBtn').style.display = 'block';
     canvas = document.getElementById('arenaCanvas');
     ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    resizeArenaCanvas();
 
     // Inicjalizacja 3D
     initArena3D();
@@ -502,7 +512,7 @@ document.addEventListener('keydown', function(e) {
 document.addEventListener('keyup', function(e) { keys[e.key.toLowerCase()] = false; });
 document.addEventListener('mousemove', function(e) { mouse.x = e.clientX; mouse.y = e.clientY; });
 document.addEventListener('click', function(e) {
-    if (!gameRunning || e.target.id === 'superBtn') return;
+    if (!gameRunning || gamePaused || e.target.id === 'superBtn' || e.target.id === 'pauseBtn' || isMobileControlElement(e.target)) return;
     if (player.superReady) {
         launchSuper();
     } else if (!player.isSupering) {
@@ -511,18 +521,15 @@ document.addEventListener('click', function(e) {
 });
 
 // === KONTROLKI MOBILNE ===
-var joystickTouchId = null;
+var joystickPointerId = null;
+var aimPointerId = null;
 var joystickCenter = { x: 0, y: 0 };
-var joystickActive = false;
-var joystickRadius = 70;
-var joystickKnobMax = 45;
+var joystickMaxDistance = 1;
 
 function updateJoystickKnob(dx, dy) {
     var knob = document.getElementById('joystickKnob');
     if (!knob) return;
-    var dist = Math.sqrt(dx * dx + dy * dy);
-    var scale = dist > joystickKnobMax ? joystickKnobMax / dist : 1;
-    knob.style.transform = 'translate(calc(-50% + ' + (dx * scale) + 'px), calc(-50% + ' + (dy * scale) + 'px))';
+    knob.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
 }
 
 function resetJoystickKnob() {
@@ -530,108 +537,170 @@ function resetJoystickKnob() {
     if (knob) knob.style.transform = 'translate(-50%, -50%)';
 }
 
-function joystickToKeys(dx, dy) {
-    keys['w'] = dy < -10;
-    keys['s'] = dy > 10;
-    keys['a'] = dx < -10;
-    keys['d'] = dx > 10;
+function resetMobileMove() {
+    mobileMove.x = 0;
+    mobileMove.y = 0;
+    mobileMove.active = false;
+    resetJoystickKnob();
 }
 
-function resetKeys() {
-    keys['w'] = false;
-    keys['a'] = false;
-    keys['s'] = false;
-    keys['d'] = false;
+function updateMobileMove(clientX, clientY) {
+    var dx = clientX - joystickCenter.x;
+    var dy = clientY - joystickCenter.y;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    var max = joystickMaxDistance || 1;
+    var limited = Math.min(dist, max);
+    var nx = dist > 0 ? dx / dist : 0;
+    var ny = dist > 0 ? dy / dist : 0;
+    updateJoystickKnob(nx * limited, ny * limited);
+    mobileMove.x = nx * Math.min(1, dist / max);
+    mobileMove.y = ny * Math.min(1, dist / max);
+    mobileMove.active = dist > 8;
 }
 
-var joystickArea = document.getElementById('joystickArea');
-if (joystickArea) {
-    joystickArea.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        if (joystickTouchId !== null) return;
-        var touch = e.changedTouches[0];
-        joystickTouchId = touch.identifier;
-        var rect = joystickArea.getBoundingClientRect();
-        joystickCenter.x = rect.left + rect.width / 2;
-        joystickCenter.y = rect.top + rect.height / 2;
-        joystickActive = true;
-        var dx = touch.clientX - joystickCenter.x;
-        var dy = touch.clientY - joystickCenter.y;
-        updateJoystickKnob(dx, dy);
-        joystickToKeys(dx, dy);
-    }, { passive: false });
-
-    joystickArea.addEventListener('touchmove', function(e) {
-        e.preventDefault();
-        if (!joystickActive) return;
-        for (var i = 0; i < e.changedTouches.length; i++) {
-            if (e.changedTouches[i].identifier === joystickTouchId) {
-                var touch = e.changedTouches[i];
-                var dx = touch.clientX - joystickCenter.x;
-                var dy = touch.clientY - joystickCenter.y;
-                updateJoystickKnob(dx, dy);
-                joystickToKeys(dx, dy);
-                break;
-            }
-        }
-    }, { passive: false });
-
-    joystickArea.addEventListener('touchend', function(e) {
-        for (var i = 0; i < e.changedTouches.length; i++) {
-            if (e.changedTouches[i].identifier === joystickTouchId) {
-                joystickTouchId = null;
-                joystickActive = false;
-                resetJoystickKnob();
-                resetKeys();
-                break;
-            }
-        }
-    });
-
-    joystickArea.addEventListener('touchcancel', function(e) {
-        for (var i = 0; i < e.changedTouches.length; i++) {
-            if (e.changedTouches[i].identifier === joystickTouchId) {
-                joystickTouchId = null;
-                joystickActive = false;
-                resetJoystickKnob();
-                resetKeys();
-                break;
-            }
-        }
-    });
-}
-
-var fireBtn = document.getElementById('fireBtn');
-if (fireBtn) {
-    fireBtn.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        fireBtn.classList.add('active');
-        if (!gameRunning) return;
-        if (player.superReady) {
-            launchSuper();
-        } else if (!player.isSupering) {
-            playerAttack();
-        }
-    }, { passive: false });
-
-    fireBtn.addEventListener('touchend', function(e) {
-        e.preventDefault();
-        fireBtn.classList.remove('active');
-    });
-}
-
-// Celownik dotykiem (poza joystickiem i fireBtn)
-document.addEventListener('touchmove', function(e) {
-    if (!gameRunning) return;
-    for (var i = 0; i < e.touches.length; i++) {
-        var t = e.touches[i];
-        var target = document.elementFromPoint(t.clientX, t.clientY);
-        if (target && (target.id === 'joystickArea' || target.id === 'joystickKnob' || target.id === 'fireBtn')) continue;
-        mouse.x = t.clientX;
-        mouse.y = t.clientY;
+function isMobileControlElement(el) {
+    while (el) {
+        if (el.id === 'mobileControls' || el.id === 'joystickArea' || el.id === 'joystickKnob' || el.id === 'fireBtn' || el.id === 'superMobileBtn') return true;
+        el = el.parentElement;
     }
-}, { passive: true });
+    return false;
+}
+
+function setAimWorldTarget(x, y) {
+    mouse.x = x - camera.x;
+    mouse.y = y - camera.y;
+    if (typeof mouseWorld3D !== 'undefined') {
+        mouseWorld3D.x = x;
+        mouseWorld3D.z = y;
+    }
+}
+
+function aimAtNearestEnemy() {
+    if (!gameRunning || mobileAim.active) return;
+    var best = null;
+    var bestDist = Infinity;
+    for (var i = 0; i < enemies.length; i++) {
+        var e = enemies[i];
+        if (!e || e.hp <= 0) continue;
+        var dx = e.x - player.x;
+        var dy = e.y - player.y;
+        var dist = dx * dx + dy * dy;
+        if (dist < bestDist) {
+            best = e;
+            bestDist = dist;
+        }
+    }
+    if (best) {
+        setAimWorldTarget(best.x, best.y);
+    } else if (mobileMove.active) {
+        setAimWorldTarget(player.x + mobileMove.x * 160, player.y + mobileMove.y * 160);
+    }
+}
+
+function initMobileControls() {
+    var joystickArea = document.getElementById('joystickArea');
+    var fireBtn = document.getElementById('fireBtn');
+    var superMobileBtn = document.getElementById('superMobileBtn');
+    var gameScreen = document.getElementById('gameScreen');
+
+    if (joystickArea) {
+        joystickArea.addEventListener('pointerdown', function(e) {
+            e.preventDefault();
+            if (joystickPointerId !== null) return;
+            joystickPointerId = e.pointerId;
+            joystickArea.setPointerCapture(e.pointerId);
+            var rect = joystickArea.getBoundingClientRect();
+            joystickCenter.x = rect.left + rect.width / 2;
+            joystickCenter.y = rect.top + rect.height / 2;
+            joystickMaxDistance = rect.width * 0.32;
+            updateMobileMove(e.clientX, e.clientY);
+        });
+
+        joystickArea.addEventListener('pointermove', function(e) {
+            if (e.pointerId !== joystickPointerId) return;
+            e.preventDefault();
+            updateMobileMove(e.clientX, e.clientY);
+        });
+
+        function stopJoystick(e) {
+            if (e.pointerId !== joystickPointerId) return;
+            joystickPointerId = null;
+            resetMobileMove();
+        }
+        joystickArea.addEventListener('pointerup', stopJoystick);
+        joystickArea.addEventListener('pointercancel', stopJoystick);
+    }
+
+    if (gameScreen) {
+        gameScreen.addEventListener('pointerdown', function(e) {
+            if (!gameRunning || isMobileControlElement(e.target)) return;
+            aimPointerId = e.pointerId;
+            mobileAim.active = true;
+            mobileAim.x = e.clientX;
+            mobileAim.y = e.clientY;
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        gameScreen.addEventListener('pointermove', function(e) {
+            if (!gameRunning || e.pointerId !== aimPointerId || isMobileControlElement(e.target)) return;
+            mobileAim.x = e.clientX;
+            mobileAim.y = e.clientY;
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        function stopAim(e) {
+            if (e.pointerId !== aimPointerId) return;
+            aimPointerId = null;
+            mobileAim.active = false;
+        }
+        gameScreen.addEventListener('pointerup', stopAim);
+        gameScreen.addEventListener('pointercancel', stopAim);
+    }
+
+    if (fireBtn) {
+        fireBtn.addEventListener('pointerdown', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            fireBtn.classList.add('active');
+            if (!gameRunning) return;
+            aimAtNearestEnemy();
+            if (player.superReady) {
+                launchSuper();
+            } else if (!player.isSupering) {
+                playerAttack();
+            }
+        });
+
+        fireBtn.addEventListener('pointerup', function(e) {
+            e.preventDefault();
+            fireBtn.classList.remove('active');
+        });
+        fireBtn.addEventListener('pointercancel', function() {
+            fireBtn.classList.remove('active');
+        });
+    }
+
+    if (superMobileBtn) {
+        superMobileBtn.addEventListener('pointerdown', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!gameRunning || superMobileBtn.disabled) return;
+            superMobileBtn.classList.add('active');
+            aimAtNearestEnemy();
+            useSuper();
+        });
+        superMobileBtn.addEventListener('pointerup', function() {
+            superMobileBtn.classList.remove('active');
+        });
+        superMobileBtn.addEventListener('pointercancel', function() {
+            superMobileBtn.classList.remove('active');
+        });
+    }
+}
+
+initMobileControls();
 
 // === GŁÓWNA PĘTLA GRY ===
 function gameLoop() {
@@ -640,6 +709,7 @@ function gameLoop() {
     updatePlayer();
     updateEnemies();
     updateAttacks();
+    updateSuperBtn();
     updateParticles();
 
     // === SPRAWDŹ AKUMULATORY ===
