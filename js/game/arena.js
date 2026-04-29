@@ -510,6 +510,129 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// === KONTROLKI MOBILNE ===
+var joystickTouchId = null;
+var joystickCenter = { x: 0, y: 0 };
+var joystickActive = false;
+var joystickRadius = 70;
+var joystickKnobMax = 45;
+
+function updateJoystickKnob(dx, dy) {
+    var knob = document.getElementById('joystickKnob');
+    if (!knob) return;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    var scale = dist > joystickKnobMax ? joystickKnobMax / dist : 1;
+    knob.style.transform = 'translate(calc(-50% + ' + (dx * scale) + 'px), calc(-50% + ' + (dy * scale) + 'px))';
+}
+
+function resetJoystickKnob() {
+    var knob = document.getElementById('joystickKnob');
+    if (knob) knob.style.transform = 'translate(-50%, -50%)';
+}
+
+function joystickToKeys(dx, dy) {
+    keys['w'] = dy < -10;
+    keys['s'] = dy > 10;
+    keys['a'] = dx < -10;
+    keys['d'] = dx > 10;
+}
+
+function resetKeys() {
+    keys['w'] = false;
+    keys['a'] = false;
+    keys['s'] = false;
+    keys['d'] = false;
+}
+
+var joystickArea = document.getElementById('joystickArea');
+if (joystickArea) {
+    joystickArea.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        if (joystickTouchId !== null) return;
+        var touch = e.changedTouches[0];
+        joystickTouchId = touch.identifier;
+        var rect = joystickArea.getBoundingClientRect();
+        joystickCenter.x = rect.left + rect.width / 2;
+        joystickCenter.y = rect.top + rect.height / 2;
+        joystickActive = true;
+        var dx = touch.clientX - joystickCenter.x;
+        var dy = touch.clientY - joystickCenter.y;
+        updateJoystickKnob(dx, dy);
+        joystickToKeys(dx, dy);
+    }, { passive: false });
+
+    joystickArea.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+        if (!joystickActive) return;
+        for (var i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === joystickTouchId) {
+                var touch = e.changedTouches[i];
+                var dx = touch.clientX - joystickCenter.x;
+                var dy = touch.clientY - joystickCenter.y;
+                updateJoystickKnob(dx, dy);
+                joystickToKeys(dx, dy);
+                break;
+            }
+        }
+    }, { passive: false });
+
+    joystickArea.addEventListener('touchend', function(e) {
+        for (var i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === joystickTouchId) {
+                joystickTouchId = null;
+                joystickActive = false;
+                resetJoystickKnob();
+                resetKeys();
+                break;
+            }
+        }
+    });
+
+    joystickArea.addEventListener('touchcancel', function(e) {
+        for (var i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === joystickTouchId) {
+                joystickTouchId = null;
+                joystickActive = false;
+                resetJoystickKnob();
+                resetKeys();
+                break;
+            }
+        }
+    });
+}
+
+var fireBtn = document.getElementById('fireBtn');
+if (fireBtn) {
+    fireBtn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        fireBtn.classList.add('active');
+        if (!gameRunning) return;
+        if (player.superReady) {
+            launchSuper();
+        } else if (!player.isSupering) {
+            playerAttack();
+        }
+    }, { passive: false });
+
+    fireBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        fireBtn.classList.remove('active');
+    });
+}
+
+// Celownik dotykiem (poza joystickiem i fireBtn)
+document.addEventListener('touchmove', function(e) {
+    if (!gameRunning) return;
+    for (var i = 0; i < e.touches.length; i++) {
+        var t = e.touches[i];
+        var target = document.elementFromPoint(t.clientX, t.clientY);
+        if (target && (target.id === 'joystickArea' || target.id === 'joystickKnob' || target.id === 'fireBtn')) continue;
+        mouse.x = t.clientX;
+        mouse.y = t.clientY;
+    }
+}, { passive: true });
+
 // === GŁÓWNA PĘTLA GRY ===
 function gameLoop() {
     if (!gameRunning || gamePaused) return;

@@ -2,7 +2,15 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Zombie Story</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zombie Story – darmowa gra online</title>
+    <meta name="description" content="Zombie Story – gra online inspirowana Brawl Stars. Walcz z zombie, zdobywaj puchary i odblokowuj postacie!">
+    <meta name="keywords" content="zombie story, gra online, brawl stars, gra przeglądarkowa, zombie, darmowa gra">
+    <meta name="author" content="Mikołaj Czapski">
+    <meta property="og:title" content="Zombie Story">
+    <meta property="og:description" content="Darmowa gra online inspirowana Brawl Stars. Walcz z zombie i zdobywaj puchary!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mikolajczapski2016-dev.github.io/brawlstars/">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧟</text></svg>">
     <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -256,6 +264,13 @@
         <div style="color:#fff; font-size:52px; font-weight:900; font-family:Arial; margin-bottom:30px;">⏸ PAUZA</div>
         <button onclick="togglePause()" style="padding:14px 48px; margin:10px; background:linear-gradient(135deg,#4caf50,#2e7d32); color:#fff; font-size:22px; font-weight:800; font-family:Arial; border:none; border-radius:50px; cursor:pointer;">▶ WRÓĆ DO GRY</button>
         <button onclick="backToLobby()" style="padding:14px 48px; margin:10px; background:linear-gradient(135deg,#f44336,#b71c1c); color:#fff; font-size:22px; font-weight:800; font-family:Arial; border:none; border-radius:50px; cursor:pointer;">🏠 WYJDŹ DO LOBBY</button>
+    </div>
+    <!-- Kontrolki mobilne -->
+    <div id="mobileControls">
+        <div id="joystickArea">
+            <div id="joystickKnob"></div>
+        </div>
+        <div id="fireBtn">🔥</div>
     </div>
 </div>
 
