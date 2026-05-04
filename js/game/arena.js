@@ -872,9 +872,11 @@ function gameLoop() {
     var rendered3D = false;
     if (typeof renderArena3D === 'function') {
         renderArena3D();
-        // Sprawdź czy faktycznie zrenderowaliśmy 3D (czy nie było fallbacku)
-        rendered3D = (typeof use3D !== 'undefined' && use3D && typeof renderer3d !== 'undefined' && renderer3d);
-    } else if (typeof drawArena === 'function') {
+        // Sprawdź czy faktycznie zrenderowaliśmy 3D
+        // W zamku wymuszamy 2D, bo 3D nie ma jeszcze poprawnego wnętrza zamku
+        rendered3D = (typeof use3D !== 'undefined' && use3D && typeof renderer3d !== 'undefined' && renderer3d && !inCastle);
+    }
+    if (!rendered3D && typeof drawArena === 'function') {
         drawArena();
     }
 
