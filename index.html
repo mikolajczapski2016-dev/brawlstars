@@ -34,6 +34,7 @@
     <button class="btn btn-side btn-characters" onclick="openPanel('characters')">🎮 POSTACIE</button>
     <button class="btn btn-side btn-robux" onclick="openPanel('robuxRoad')">💎 ALEJA MÓZGÓW</button>
     <button class="btn btn-side btn-shop" onclick="openPanel('shop')">🛒 SKLEP</button>
+    <button class="btn btn-side" onclick="openPanel('qrPanel')" style="background: linear-gradient(180deg, #ab47bc, #7b1fa2); color: #fff; box-shadow: 0 4px 0 #4a148c, 0 6px 15px rgba(171, 71, 188, 0.4); left: 20px; top: calc(50% + 100px);">📱 KOD QR</button>
     <button class="btn btn-admin" id="adminBtn" onclick="openPanel('adminPanel')" style="background: linear-gradient(135deg, #9c27b0, #7b1fa2); display: none;">⚙️ ADMIN</button>
     <button class="btn btn-play" onclick="startGame()">▶ GRAJ</button>
     <div class="btn btn-mode-display" style="cursor: default;">⚔️ ARENA</div>
@@ -173,6 +174,15 @@
         <div class="shop-item" style="background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent);"><span class="skin-icon" style="background: linear-gradient(135deg, #ffd700, #ff8f00);">⭐</span><span style="color: #ffd700; font-weight: 700;">Legendarny Zombie</span><span class="price">💰 2500</span><button class="upgrade-btn" style="background: linear-gradient(180deg, #ffd700, #ff8f00); color: #4a3000;" disabled>JUŻ WKROTCE</button></div>
     </div>
 
+    <!-- Panel QR -->
+    <div class="panel" id="qrPanel" style="min-width: 420px; text-align: center;">
+        <button class="close-btn" onclick="closePanel('qrPanel')">✕</button>
+        <h2 style="color: #fff; margin-bottom: 15px;">📱 Zagraj na telefonie!</h2>
+        <p style="color: rgba(255,255,255,0.6); margin-bottom: 20px; font-size: 14px;">Zeskanuj kod telefonem:</p>
+        <img src="qr-code.png" alt="Kod QR do gry" style="max-width: 360px; width: 90%; border-radius: 12px; border: 4px solid #ab47bc;">
+        <p style="color: #ab47bc; margin-top: 15px; font-weight: 700; font-size: 16px;">https://mikolajczapski2016-dev.github.io/brawlstars/</p>
+    </div>
+
     <!-- Aleja Mózgów -->
     <div class="char-screen" id="robuxRoad">
         <button class="close-btn" onclick="closePanel('robuxRoad')">✕</button>
@@ -276,6 +286,13 @@
 </div>
 
 <!-- ===== SKRYPTY - kolejność ładowania jest ważna! ===== -->
+
+<!-- Ekran "obróć telefon" -->
+<div id="rotatePrompt">
+    <div style="font-size: 80px; margin-bottom: 20px;">🔄</div>
+    <div style="font-size: 28px; font-weight: 900; color: #fff; text-shadow: 2px 2px 0 #000; margin-bottom: 12px;">Obróć telefon</div>
+    <div style="font-size: 18px; color: rgba(255,255,255,0.7);">Gra działa tylko w poziomie!</div>
+</div>
 
 <!-- 0. Three.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
