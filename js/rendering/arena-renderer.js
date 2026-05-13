@@ -293,7 +293,7 @@ function drawBoss(x, y) {
 }
 
 function drawBossFloor0(x, y) {
-    // Sługus - mały, brązowy sługa
+    // Strażnik Zamku - mały, brązowy strażnik
     var time = Date.now() / 1000;
     var bounce = Math.sin(time * 3) * 3;
 
@@ -582,7 +582,7 @@ function drawArena() {
             ctx.fillText('Pokonaj bossa aby wejść na piętro 1!', cx + canvas.width/2, cy + 80);
             ctx.fillText('⬆ SCHODY NA PIĘTRO 1', cx + canvas.width/2, cy + canvas.height - 40);
 
-            // Boss piętra 0 - Sługus
+            // Boss piętra 0 - Strażnik Zamku
             if (bossFloor0 && bossFloor0.hp > 0) {
                 drawBossFloor0(bossFloor0.x, bossFloor0.y);
                 // Pasek HP
@@ -595,7 +595,7 @@ function drawArena() {
                 ctx.fillStyle = '#fff';
                 ctx.font = 'bold 12px Arial';
                 ctx.textAlign = 'center';
-                ctx.fillText('🛡️ Sługus', bossFloor0.x, bossFloor0.y - 65);
+                ctx.fillText('🛡️ Strażnik Zamku', bossFloor0.x, bossFloor0.y - 65);
             }
 
             // Wyjście z zamku

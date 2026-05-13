@@ -319,7 +319,7 @@ function updateAttacks() {
 
             // Atak na bossów w zamku
             if (inCastle) {
-                // Piętro 0 - Sługus
+                // Piętro 0 - Strażnik Zamku
                 if (bossFloor0 && castleFloor === 0) {
                     var bdx = ax - bossFloor0.x;
                     var bdy = ay - bossFloor0.y;

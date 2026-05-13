@@ -25,15 +25,15 @@ var skinPrices = {
 // Dialog z bossem (zamek)
 var bossDialogs = [
     { text: "Czekaj... to TY?!", speaker: "👑 KRÓL CIEMNOŚCI" },
-    { text: "Pamiętam cię, zombie. Byłeś moim najwierniejszym sługą!", speaker: "👑 KRÓL CIEMNOŚCI" },
-    { text: "Służyłeś mi wiernie przez setki lat... ale mnie zdradziłeś!", speaker: "👑 KRÓL CIEMNOŚCI" },
-    { text: "Przestałeś mi służyć, opuściłeś mój zamek, zbuntowałeś się!", speaker: "👑 KRÓL CIEMNOŚCI" },
-    { text: "Za to cię wygnałem do świata śmiertelników. Myślałem, że tam zgnijesz...", speaker: "👑 KRÓL CIEMNOŚCI" },
-    { text: "A teraz wracasz? Z twoimi wspomnieniami?", speaker: "👑 KRÓL CIEMNOŚCI" },
-    { text: "...pamiętam... byłem królem... służyłem mu... ale on mnie zdradził!", speaker: "🧟 ZOMBIE" },
-    { text: "TO JA BYŁEM ZDRADZONY! Zmienił mnie w potwora!", speaker: "🧟 ZOMBIE" },
-    { text: "Teraz wszystko rozumiem. Zemścię się!", speaker: "🧟 ZOMBIE" },
-    { text: "Zemsta? TWOJA?! To ja zapragnąłem zemsty za twoją zdradę! Teraz cię zniszczę!", speaker: "👑 KRÓL CIEMNOŚCI" }
+    { text: "Ty... żywy?! Nie powinieneś tu wchodzić!", speaker: "👑 KRÓL CIEMNOŚCI" },
+    { text: "Jesteś tylko zwykłym zombie z wioski... ale masz w sobie coś innego.", speaker: "👑 KRÓL CIEMNOŚCI" },
+    { text: "Czułem, że kiedyś ktoś przyjdzie mnie pokonać. Myślałem, że zgnijesz na arenie!", speaker: "👑 KRÓL CIEMNOŚCI" },
+    { text: "A jednak dotarłeś przez cały zamek. Jesteś wyjątkowy...", speaker: "👑 KRÓL CIEMNOŚCI" },
+    { text: "Ale to koniec! Nikt nie pokona Króla Ciemności!", speaker: "👑 KRÓL CIEMNOŚCI" },
+    { text: "...ja... ja nie jestem twoim sługą!", speaker: "🧟 ZOMBIE" },
+    { text: "Zmieniłeś mnie w potwora i terroryzujesz świat!", speaker: "🧟 ZOMBIE" },
+    { text: "Teraz wszystko rozumiem. Pokonam cię i uratuję świat!", speaker: "🧟 ZOMBIE" },
+    { text: "Uratujesz?! Głupcze! Ja JESTEM światem! Teraz cię zniszczę!", speaker: "👑 KRÓL CIEMNOŚCI" }
 ];
 
 // adminCode zdefiniowany w js/ui/panels.js

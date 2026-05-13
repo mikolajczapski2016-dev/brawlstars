@@ -125,7 +125,7 @@ function resetGame() {
     currentSkin = 'default';
     robuxProgress = 0;
     claimedRobuxRewards = [];
-    unlockedCharacters = ['Zombie', 'Toksyk', 'Duszek', 'Złotek', 'UltraZombi'];
+    unlockedCharacters = ['Zombie'];
     characterUpgrades = {};
     updateCoins();
     updateTrophies();

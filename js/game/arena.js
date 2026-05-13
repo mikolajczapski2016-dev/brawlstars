@@ -102,6 +102,12 @@ function findFreePosition() {
                 }
             }
         }
+        // Nie spawnuj w zamku (na poziomach 90+)
+        if (valid && castle) {
+            if (rectsOverlap(fx - 20, fy - 25, 40, 50, castle.x, castle.y, castle.w, castle.h)) {
+                valid = false;
+            }
+        }
         if (valid) return { x: fx, y: fy };
     }
     // Fallback - środek areny (zazwyczaj wolny)
@@ -177,7 +183,7 @@ function initArena() {
         if (arenaLevel >= 90) {
             var hpScale = 1 + (arenaLevel - 90) * 0.15;
 
-            // Piętro 0 - Sługus (najsłabszy boss)
+            // Piętro 0 - Strażnik Zamku (najsłabszy boss)
             bossFloor0 = {
                 x: castle.x + castle.w / 2,
                 y: castle.y + castle.h / 2,
@@ -190,7 +196,7 @@ function initArena() {
                 changeDir: 0,
                 color: '#5d4037',
                 type: 'bossFloor0',
-                name: 'Sługus',
+                name: 'Strażnik Zamku',
                 damage: 8
             };
 
@@ -233,13 +239,13 @@ function initArena() {
             // 4 akumulatory zasilające zbroję tylko na poziomie 100
             if (arenaLevel >= 100) {
                 bossHasArmor = true;
-                var roomCenterX = canvas.width / 2;
-                var roomCenterY = canvas.height / 2 - 50;
+                var roomCenterX = castle.towerX + castle.towerW / 2;
+                var roomCenterY = castle.towerY - 40;
                 accumulators = [
-                    { x: roomCenterX - 220, y: roomCenterY - 120, hp: 400, maxHp: 400, active: true, pulse: 0 },
-                    { x: roomCenterX + 220, y: roomCenterY - 120, hp: 400, maxHp: 400, active: true, pulse: 0 },
-                    { x: roomCenterX - 220, y: roomCenterY + 120, hp: 400, maxHp: 400, active: true, pulse: 0 },
-                    { x: roomCenterX + 220, y: roomCenterY + 120, hp: 400, maxHp: 400, active: true, pulse: 0 }
+                    { x: roomCenterX - 25, y: roomCenterY - 35, hp: 400, maxHp: 400, active: true, pulse: 0 },
+                    { x: roomCenterX + 25, y: roomCenterY - 35, hp: 400, maxHp: 400, active: true, pulse: 0 },
+                    { x: roomCenterX - 25, y: roomCenterY + 35, hp: 400, maxHp: 400, active: true, pulse: 0 },
+                    { x: roomCenterX + 25, y: roomCenterY + 35, hp: 400, maxHp: 400, active: true, pulse: 0 }
                 ];
             }
         }
