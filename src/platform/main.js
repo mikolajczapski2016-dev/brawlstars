@@ -1,4 +1,3 @@
-import './styles.css';
 import { games } from './games.js';
 import { startZombieStoryApp } from '../games/zombie-story/loader.js';
 
