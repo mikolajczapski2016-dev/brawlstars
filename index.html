@@ -3,20 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>Zombie Story – darmowa gra online</title>
-    <meta name="description" content="Zombie Story – gra online inspirowana Brawl Stars. Walcz z zombie, zdobywaj puchary i odblokowuj postacie!">
-    <meta name="keywords" content="zombie story, gra online, brawl stars, gra przeglądarkowa, zombie, darmowa gra">
+    <title>Miki GameShop – gry Mikołaja</title>
+    <meta name="description" content="Miki GameShop – kolorowa platforma mobilnych gier Mikołaja dla dzieci.">
+    <meta name="keywords" content="miki gameshop, gry mikołaja, gry dla dzieci, gry mobilne, gry online">
     <meta name="author" content="Mikołaj Czapski">
-    <meta property="og:title" content="Zombie Story">
-    <meta property="og:description" content="Darmowa gra online inspirowana Brawl Stars. Walcz z zombie i zdobywaj puchary!">
+    <meta name="theme-color" content="#220746">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Miki GameShop">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta property="og:title" content="Miki GameShop">
+    <meta property="og:description" content="Kolorowa platforma mobilnych gier Mikołaja.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://mikolajczapski2016-dev.github.io/brawlstars/">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧟</text></svg>">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icon.svg">
 </head>
-<body>
+<body class="platform-mode">
 
-<div id="lobby">
+<main id="mikiGameShop" aria-label="Miki GameShop"></main>
+
+<div id="lobby" aria-label="Zombie Story">
     <div id="lobby3d" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></div>
     <canvas id="lobbyBg" style="display:none;"></canvas>
     <div class="stars" id="stars"></div>
@@ -36,6 +44,7 @@
     <button class="btn btn-side btn-shop" onclick="openPanel('shop')">🛒 SKLEP</button>
     <button class="btn btn-side" onclick="openPanel('qrPanel')" style="background: linear-gradient(180deg, #ab47bc, #7b1fa2); color: #fff; box-shadow: 0 4px 0 #4a148c, 0 6px 15px rgba(171, 71, 188, 0.4); left: 20px; top: calc(50% + 100px);">📱 KOD QR</button>
     <button class="btn btn-admin" id="adminBtn" onclick="openPanel('adminPanel')" style="background: linear-gradient(135deg, #9c27b0, #7b1fa2); display: none;">⚙️ ADMIN</button>
+    <button class="btn btn-gameshop-home" onclick="window.showMikiGameShop && window.showMikiGameShop()">🏠 MIKI GAMESHOP</button>
     <button class="btn btn-play" onclick="startGame()">▶ GRAJ</button>
     <div class="btn btn-mode-display" style="cursor: default;">⚔️ ARENA</div>
     <div class="arena-level-display" id="arenaLevelDisplay" style="display: none;">🏆 POZIOM 1</div>
@@ -179,7 +188,7 @@
         <button class="close-btn" onclick="closePanel('qrPanel')">✕</button>
         <h2 style="color: #fff; margin-bottom: 15px;">📱 Zagraj na telefonie!</h2>
         <p style="color: rgba(255,255,255,0.6); margin-bottom: 20px; font-size: 14px;">Zeskanuj kod telefonem:</p>
-        <img src="qr-code.png" alt="Kod QR do gry" style="max-width: 360px; width: 90%; border-radius: 12px; border: 4px solid #ab47bc;">
+        <img src="games/zombie-story/qr-code.png" alt="Kod QR do gry" style="max-width: 360px; width: 90%; border-radius: 12px; border: 4px solid #ab47bc;">
         <p style="color: #ab47bc; margin-top: 15px; font-weight: 700; font-size: 16px;">https://mikolajczapski2016-dev.github.io/brawlstars/</p>
     </div>
 
@@ -294,84 +303,6 @@
     <div style="font-size: 18px; color: rgba(255,255,255,0.7);">Gra działa tylko w poziomie!</div>
 </div>
 
-<!-- 0. Three.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-<!-- 1. Dane gry (brak zależności) -->
-<script src="js/data/config.js?v=2"></script>
-<script src="js/data/characters.js?v=2"></script>
-<script src="js/data/rewards.js?v=2"></script>
-
-<!-- 2. Stan gry i UI (zależy od danych) -->
-<script src="js/ui/lobby.js?v=2"></script>
-<script src="js/ui/upgrades.js?v=2"></script>
-<script src="js/ui/save-load.js?v=2"></script>
-<script src="js/ui/shop.js?v=2"></script>
-<script src="js/ui/panels.js?v=2"></script>
-
-<!-- 3. Rendering (zależy od danych i stanu) -->
-<script src="js/rendering/arena-3d.js?v=2"></script>
-<script src="js/rendering/lobby-3d.js?v=2"></script>
-<script src="js/rendering/char-preview-3d.js?v=2"></script>
-<script src="js/rendering/lobby-characters.js?v=2"></script>
-<script src="js/rendering/game-characters.js?v=2"></script>
-<script src="js/rendering/lobby-background.js?v=2"></script>
-<script src="js/rendering/arena-renderer.js?v=2"></script>
-
-<!-- 4. Logika gry (zależy od wszystkiego powyżej) -->
-<script src="js/game/arena.js?v=2"></script>
-<script src="js/game/player.js?v=2"></script>
-<script src="js/game/enemies.js?v=2"></script>
-<script src="js/game/attacks.js?v=2"></script>
-<script src="js/game/football.js?v=2"></script>
-<script src="js/game/nest.js?v=2"></script>
-
-
-<!-- 5. Inicjalizacja (uruchamia grę) -->
-<script>
-    window.onerror = function(msg, url, line) {
-        alert('BŁĄD JS w ' + url.split('/').pop() + ' linia ' + line + ': ' + msg);
-    };
-
-    window.addEventListener('resize', function() {
-        if (typeof resizeArenaCanvas === 'function') {
-            resizeArenaCanvas();
-        } else if (canvas) {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-    });
-
-    // Gwiazdki w tle
-    var stars = document.getElementById('stars');
-    for (var i = 0; i < 60; i++) {
-        var star = document.createElement('div');
-        star.className = 'star';
-        var size = Math.random() * 3 + 1;
-        star.style.width = size + 'px';
-        star.style.height = size + 'px';
-        star.style.left = Math.random() * 100 + '%';
-        star.style.top = Math.random() * 100 + '%';
-        star.style.animationDelay = Math.random() * 2 + 's';
-        stars.appendChild(star);
-    }
-
-    // Jednorazowy reset - kompatybilność
-    if (!localStorage.getItem('brawlblox_v6')) {
-        localStorage.removeItem('brawlblox_save');
-        localStorage.setItem('brawlblox_v6', 'true');
-    }
-
-    // Start!
-    loadGame();
-    updateUpgradeBtns();
-    initLobby3D();
-    updateArenaLevelDisplay();
-
-    // Autozapis co 5 sekund
-    setInterval(function() { saveGame(); }, 5000);
-    window.addEventListener('beforeunload', function() { saveGame(); });
-</script>
-
+<script type="module" src="./src/platform/main.js"></script>
 </body>
 </html>

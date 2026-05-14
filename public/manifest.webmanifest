@@ -1,0 +1,21 @@
+{
+  "name": "Miki GameShop",
+  "short_name": "Miki Games",
+  "description": "Kolorowa mobilna platforma gier Mikołaja.",
+  "start_url": "/brawlstars/",
+  "scope": "/brawlstars/",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#220746",
+  "theme_color": "#220746",
+  "categories": ["games", "kids", "entertainment"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
