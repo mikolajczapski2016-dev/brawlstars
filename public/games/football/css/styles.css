@@ -1,0 +1,176 @@
+/* ============ STYLE MINI PIŁKA ============ */
+
+.fb-lobby {
+    width: 100%;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #1a1a2e, #16213e);
+    color: #fff;
+    font-family: Arial, sans-serif;
+    position: relative;
+    overflow-x: hidden;
+    padding-bottom: 40px;
+}
+
+.fb-lobby-bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.fb-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.3;
+}
+
+.fb-blob-1 {
+    width: 400px; height: 400px;
+    background: #42ff9e;
+    top: -100px; left: -100px;
+    animation: fbFloat 8s ease-in-out infinite;
+}
+
+.fb-blob-2 {
+    width: 300px; height: 300px;
+    background: #ffd700;
+    bottom: -50px; right: -50px;
+    animation: fbFloat 10s ease-in-out infinite reverse;
+}
+
+@keyframes fbFloat {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(30px, -30px); }
+}
+
+.fb-lobby-header {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 30px 20px 10px;
+}
+
+.fb-logo {
+    font-size: 48px;
+    font-weight: 900;
+    color: #42ff9e;
+    text-shadow: 0 0 20px rgba(66, 255, 158, 0.5), 3px 3px 0 #000;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+}
+
+.fb-logo span {
+    color: #ffd700;
+}
+
+.fb-coins {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ffd700;
+    margin-bottom: 5px;
+}
+
+.fb-stats {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 10px;
+}
+
+.fb-back-btn {
+    display: inline-block;
+    padding: 8px 20px;
+    background: linear-gradient(180deg, #9c27b0, #7b1fa2);
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #4a148c;
+}
+
+.fb-back-btn:active {
+    box-shadow: 0 2px 0 #4a148c;
+    transform: translateY(2px);
+}
+
+.fb-lobby-center {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 20px;
+}
+
+.fb-play-btn {
+    padding: 20px 60px;
+    font-size: 32px;
+    font-weight: 900;
+    color: #004d00;
+    background: linear-gradient(180deg, #4cff50, #00c853);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #1b5e20, 0 8px 20px rgba(76, 255, 80, 0.3);
+    transition: transform 0.1s, box-shadow 0.1s;
+    font-family: Arial, sans-serif;
+}
+
+.fb-play-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 3px 0 #1b5e20;
+}
+
+.fb-lobby-section {
+    position: relative;
+    z-index: 1;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 15px 20px;
+}
+
+/* Ekran wyników */
+.fb-result {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, #1a1a2e, #16213e);
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+.fb-result h1 {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.fb-result-btn {
+    padding: 16px 48px;
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    margin: 10px;
+    font-family: Arial, sans-serif;
+}
+
+/* Responsywność */
+@media (max-width: 600px) {
+    .fb-logo {
+        font-size: 32px;
+    }
+    .fb-play-btn {
+        padding: 16px 40px;
+        font-size: 24px;
+    }
+    .fb-lobby-section {
+        padding: 10px 12px;
+    }
+}

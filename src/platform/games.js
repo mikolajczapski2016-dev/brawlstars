@@ -1,7 +1,9 @@
 import { zombieStoryGame } from '../games/zombie-story/index.js';
+import { miniFootballGame } from '../games/football/index.js';
 
 export const games = [
   zombieStoryGame,
+  miniFootballGame,
   {
     id: 'cosmic-mission',
     title: 'Kosmiczna Misja',
@@ -46,15 +48,5 @@ export const games = [
     status: 'soon',
     accent: '#b36bff'
   },
-  {
-    id: 'mini-football',
-    title: 'Mini Piłka',
-    subtitle: 'Mecze na małym boisku',
-    description: 'Strzelaj gole, rób zwody i wygraj puchar.',
-    icon: '⚽',
-    badge: 'Wkrótce',
-    tag: 'Sport',
-    status: 'soon',
-    accent: '#42ff9e'
-  }
+
 ];

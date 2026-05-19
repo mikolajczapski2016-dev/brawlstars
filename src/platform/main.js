@@ -1,5 +1,6 @@
 import { games } from './games.js';
 import { startZombieStoryApp } from '../games/zombie-story/loader.js';
+import { startMiniFootballApp } from '../games/football/loader.js';
 
 const app = document.querySelector('#mikiGameShop');
 
@@ -72,6 +73,14 @@ function openGame(gameId) {
     return;
   }
 
+  if (gameId === 'mini-football') {
+    requestAppFullscreen();
+    startMiniFootballApp().catch(() => {
+      showToast('Nie udało się uruchomić gry. Spróbuj odświeżyć stronę.');
+    });
+    return;
+  }
+
   const game = games.find((item) => item.id === gameId);
   showToast(`${game?.title || 'Ta gra'} już niedługo!`);
 }
@@ -92,7 +101,7 @@ function render() {
         <p>Kolorowe gry Mikołaja w jednym miejscu. Wybierz kartę, kliknij graj i baw się na telefonie.</p>
         <div class="hero-badges" aria-label="Cechy platformy">
           <span>📱 Telefon first</span>
-          <span>🎮 6 gier</span>
+          <span>🎮 7 gier</span>
           <span>✨ Nowe światy</span>
           <button class="fullscreen-pill" type="button">⛶ Pełny ekran</button>
         </div>
